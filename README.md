@@ -35,15 +35,35 @@ Takım 119
 
 # Sprint 1
 
+Backlog Dağıtma Mantığı
+Daily Scrum Notları
+Sprint Board Updates
+Ürün Durumu
+Sprint Review
+Sprint Retrospective
 
 
 ---
 
 # Sprint 2
 
+Backlog Dağıtma Mantığı
+Daily Scrum Notları
+Sprint Board Updates
+Ürün Durumu
+Sprint Review
+Sprint Retrospective
+
 
 ---
 
 # Sprint 3
+
+Backlog Dağıtma Mantığı
+Daily Scrum Notları
+Sprint Board Updates
+Ürün Durumu
+Sprint Review
+Sprint Retrospective
 
 ---
