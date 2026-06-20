@@ -1,33 +1,49 @@
-Takım İsmi
+# **Takım İsmi**
 
-Takım X
-Ürün İle İlgili Bilgiler
-Takım Elemanları
+Takım 119
 
-    John Doe: Product Owner
-    Jane Doe: Scrum Master
-    Atıl Samancıoğlu: Team Member/Developer
+# Ürün İle İlgili Bilgiler
 
-Ürün İsmi
+## Takım Elemanları
 
---Movie App--
-Ürün Açıklaması
+-   : Product Owner
+-   : Scrum Master
+-   : Team Member/Developer
 
-    Movie App uygulamamız ile insanların izlemek istediği filmlere ve dizilere daha kolay karar vermesini sağlayacağız. İçerisinde binlerce filmi barındıran uygulamamız aynı zamanda Netflix, Prime vb. platformlarda yayınlanıp yayınlanmadığını ve IMDB puanlarını da gösterecek.
+## Ürün İsmi
 
-Ürün Özellikleri
 
-    Filmleri türüne göre ayırma
-    Filmlerin yönetmen, aktör, aktris vb. bilgilerini posteriyle birlikte gösterme
-    IMDB ve Rotten Tomatoes puanlarını gösterme
-    Netflix'te ve Prime'da bulunurluğunu gösterme
 
-Hedef Kitle
+## Ürün Açıklaması
 
-    Netflix kullanıcıları
-    Prime kullanıcıları
-    Sinema severler
-    Dizi severler
-    15 - 65 yaş arası kullanıcılar
 
-Product Backlog URL
+
+## Ürün Özellikleri
+
+
+
+
+## Hedef Kitle
+
+
+
+## Product Backlog URL
+
+
+
+---
+
+# Sprint 1
+
+
+
+---
+
+# Sprint 2
+
+
+---
+
+# Sprint 3
+
+---
