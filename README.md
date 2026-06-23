@@ -6,9 +6,11 @@ Takım 119
 
 ## Takım Elemanları
 
--   : Product Owner
--   : Scrum Master
--   : Team Member/Developer
+-  Ece EREN : Product Owner
+-  Levent KÖK : Scrum Master
+-  Sahrasu TÜYLÜOĞLU : Team Member/Developer
+-  Ayşenur BİLİR : Team Member/Developer
+-  Alp Eray ÇOKER : Team Member/Developer
 
 ## Ürün İsmi
 
