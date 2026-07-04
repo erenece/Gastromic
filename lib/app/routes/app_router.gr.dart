@@ -1,0 +1,248 @@
+// dart format width=80
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+// **************************************************************************
+// AutoRouterGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint
+// coverage:ignore-file
+
+part of 'app_router.dart';
+
+/// generated route for
+/// [ForgotPasswordView]
+class ForgotPasswordViewRoute
+    extends PageRouteInfo<ForgotPasswordViewRouteArgs> {
+  ForgotPasswordViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        ForgotPasswordViewRoute.name,
+        args: ForgotPasswordViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'ForgotPasswordViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ForgotPasswordViewRouteArgs>(
+        orElse: () => const ForgotPasswordViewRouteArgs(),
+      );
+      return ForgotPasswordView(key: args.key);
+    },
+  );
+}
+
+class ForgotPasswordViewRouteArgs {
+  const ForgotPasswordViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'ForgotPasswordViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ForgotPasswordViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [LoginView]
+class LoginViewRoute extends PageRouteInfo<LoginViewRouteArgs> {
+  LoginViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        LoginViewRoute.name,
+        args: LoginViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'LoginViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LoginViewRouteArgs>(
+        orElse: () => const LoginViewRouteArgs(),
+      );
+      return LoginView(key: args.key);
+    },
+  );
+}
+
+class LoginViewRouteArgs {
+  const LoginViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'LoginViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LoginViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [OnboardingView]
+class OnboardingViewRoute extends PageRouteInfo<OnboardingViewRouteArgs> {
+  OnboardingViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        OnboardingViewRoute.name,
+        args: OnboardingViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'OnboardingViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<OnboardingViewRouteArgs>(
+        orElse: () => const OnboardingViewRouteArgs(),
+      );
+      return OnboardingView(key: args.key);
+    },
+  );
+}
+
+class OnboardingViewRouteArgs {
+  const OnboardingViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'OnboardingViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! OnboardingViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [PreferencesView]
+class PreferencesViewRoute extends PageRouteInfo<PreferencesViewRouteArgs> {
+  PreferencesViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        PreferencesViewRoute.name,
+        args: PreferencesViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'PreferencesViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<PreferencesViewRouteArgs>(
+        orElse: () => const PreferencesViewRouteArgs(),
+      );
+      return PreferencesView(key: args.key);
+    },
+  );
+}
+
+class PreferencesViewRouteArgs {
+  const PreferencesViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'PreferencesViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PreferencesViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [RegisterView]
+class RegisterViewRoute extends PageRouteInfo<RegisterViewRouteArgs> {
+  RegisterViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        RegisterViewRoute.name,
+        args: RegisterViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'RegisterViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RegisterViewRouteArgs>(
+        orElse: () => const RegisterViewRouteArgs(),
+      );
+      return RegisterView(key: args.key);
+    },
+  );
+}
+
+class RegisterViewRouteArgs {
+  const RegisterViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'RegisterViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RegisterViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [SplashView]
+class SplashViewRoute extends PageRouteInfo<void> {
+  const SplashViewRoute({List<PageRouteInfo>? children})
+    : super(SplashViewRoute.name, initialChildren: children);
+
+  static const String name = 'SplashViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SplashView();
+    },
+  );
+}
