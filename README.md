@@ -45,11 +45,12 @@ GastroLogic AI (Gastromic), seyahat eden gurme gezginlerin bütçe, konum ve diy
   - Ekran paylaşımlı pair-programming / Daily Scrum görüntüsü (primary_button.dart üzerinde çalışma)
   - Huddle üzerinden preferences_view_model.dart geliştirmesi ve uygulama önizlemesinin eş zamanlı incelenmesi
 
-  *(Ekran görüntüleri: `ProjectManagement/Sprint1Documents/dailyscrum1.png`, `ProjectManagement/Sprint1Documents/dailyscrum2.png`)*
+  ![Daily Scrum 1](ProjectManagement/Sprint1Documents/dailyscrum1.png)
+  ![Daily Scrum 2](ProjectManagement/Sprint1Documents/dailyscrum2.png)
 
 - **Sprint Board Updates**: Sprint board'daki task'ların büyük çoğunluğu "Done" veya "In Progress" durumuna taşınmıştır. Tamamlanan başlıca task'ler: giriş/kayıt ekranlarının UI kodlaması, onboarding akışının (splash + tanıtım ekranları) tamamlanması, kullanıcı tercihleri (alerjiler & hastalık/hassasiyet) ekranının geliştirilmesi, günlük mod ve bütçe/filtre ekranının geliştirilmesi, RAG için gerekli İstanbul restoran verisinin Google Places üzerinden toplanıp CSV/JSON formatına dönüştürülmesi.
 
-  *(Board ekran görüntüsü: `ProjectManagement/Sprint1Documents/sprintboard1.png`)*
+  ![Sprint Board 1](ProjectManagement/Sprint1Documents/sprintboard1.png)
 
 - **Ürün Durumu**: Sprint 1 sonunda uygulamanın mevcut durumu aşağıdaki ekranlarla özetlenebilir:
   - Onboarding / tanıtım ekranları ("Sana Özel Lezzet Rotası", "Keşfe Hazır mısın?")
@@ -58,7 +59,17 @@ GastroLogic AI (Gastromic), seyahat eden gurme gezginlerin bütçe, konum ve diy
   - Günlük Mod ekranı: Sporcu / Vejetaryen / Organik / Kaçamak modları, kişi başı bütçe kaydırıcısı (50₺–3000₺), sigara içilen alan ve alkol servisi filtreleri
   - RAG katmanını besleyecek ham veri: `google_places_raw.json` (İstanbul'daki restoranlara ait yer bilgisi, konum, puan, yorum sayısı, fiyat seviyesi), bu veriden türetilmiş `places.csv` (mekan bilgileri) ve `reviews.csv` (kullanıcı yorumları) veri setleri hazırlanmıştır.
 
-  *(Ekran görüntüleri: `ProjectManagement/Sprint1Documents/productss1.png` ... `productss4.png`, veri seti görüntüleri: `ProjectManagement/Sprint1Documents/dataset1.png`, `dataset2.png`)*
+  **Mobil uygulama görüntüleri:**
+
+  ![Ürün Ekranı 1](ProjectManagement/Sprint1Documents/productss1.png)
+  ![Ürün Ekranı 2](ProjectManagement/Sprint1Documents/productss2.png)
+  ![Ürün Ekranı 3](ProjectManagement/Sprint1Documents/productss3.png)
+  ![Ürün Ekranı 4](ProjectManagement/Sprint1Documents/productss4.png)
+
+  **Veri seti görüntüleri:**
+
+  ![Veri Seti 1](ProjectManagement/Sprint1Documents/dataset1.png)
+  ![Veri Seti 2](ProjectManagement/Sprint1Documents/dataset2.png)
 
 - **Sprint Review**: Sprint 1'de hedeflenen kullanıcı girişi/kaydı, onboarding akışı, tercih ve günlük mod ekranlarının UI tarafı tamamlanmıştır. Ayrıca RAG katmanı için gerekli olan İstanbul restoran verisi (mekan bilgisi + kullanıcı yorumları) toplanmış ve düzenlenmiştir. Backend/AI mikro servisleri ve rota optimizasyon algoritması henüz bu sprintte kapsanmamıştır; bu nedenle ilgili PBI'lar Sprint 2'ye aktarılmıştır. Geliştirilen ekranlarda kritik bir hata görülmemiş, sadece küçük UI/UX iyileştirmeleri not edilmiştir. Sprint Review katılımcıları: Ece EREN, Levent KÖK, Sahrasu TÜYLÜOĞLU, Ayşenur BİLİR, Alp Eray ÇOKER.
 
