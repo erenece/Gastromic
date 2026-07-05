@@ -5,7 +5,7 @@ repository due to its size.
 
 You can access the full raw dataset on Kaggle:
 
-[GastroLogic AI - Raw Data](https://www.kaggle.com/datasets/sahrasutylolu/gastrologic-ai-raw-data)
+[Gastromic - Raw Data](https://www.kaggle.com/datasets/sahrasutylolu/gastromic-raw-data)
 
 ## Contents
 

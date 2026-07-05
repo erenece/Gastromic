@@ -28,6 +28,11 @@ def clean_places():
     "vejetaryen restoran": "Vegetarian Restaurant",
     "vegan restoran": "Vegan Restaurant"
     }
+#WLKFM
+
+
+
+
 
     if "Category" in df.columns:
         df["Category"] = df["Category"].replace(category_map)

@@ -5,8 +5,8 @@ GitHub repository due to their size.
 
 You can access the full datasets on Kaggle:
 
-- [GastroLogic AI - Processed Data (Places)](https://www.kaggle.com/datasets/sahrasutylolu/gastrologic-ai-processed-data-places)
-- [GastroLogic AI - Processed Data (Reviews)](https://www.kaggle.com/datasets/sahrasutylolu/gastrologic-ai-processed-data-reviews)
+- [Gastromic - Processed Data (Places)](https://www.kaggle.com/datasets/sahrasutylolu/gastromic-processed-data-places)
+- [Gastromic - Processed Data (Reviews)](https://www.kaggle.com/datasets/sahrasutylolu/gastromic-processed-data-reviews)
 
 ## Contents
 
