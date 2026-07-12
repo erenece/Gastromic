@@ -1,0 +1,10 @@
+# --- Sprint 1 (mock mod) — zorunlu ---
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# --- Sprint 2 (gerçek ajan hattı) — opsiyonel ---
+# Mock mod bunlarsız çalışır. Gerçek CrewAI orkestrasyonu için:
+crewai>=0.60.0
+# Sağlayıcı SDK'sı seçilince eklenecek (Sprint 2):
+#   google-genai        # Gemini
+#   openai              # OpenAI
