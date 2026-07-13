@@ -1,0 +1,21 @@
+# Build & tooling (tüm alt projeler)
+**/build/
+**/.dart_tool/
+**/.idea/
+**/.flutter-plugins-dependencies
+**/*.iml
+firebase.json
+data_pipeline/__pycache__/
+
+# Firebase (API key içerir)
+**/google-services.json
+**/firebase_options_dev.dart
+**/firebase_options_prod.dart
+
+# Environment
+**/.env
+**/.env.*
+**/*.env
+**/.venv/
+**/__pycache__/
+**/*.pyc
