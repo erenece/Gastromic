@@ -232,6 +232,50 @@ class RegisterViewRouteArgs {
 }
 
 /// generated route for
+/// [SearchView]
+class SearchViewRoute extends PageRouteInfo<SearchViewRouteArgs> {
+  SearchViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        SearchViewRoute.name,
+        args: SearchViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'SearchViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SearchViewRouteArgs>(
+        orElse: () => const SearchViewRouteArgs(),
+      );
+      return SearchView(key: args.key);
+    },
+  );
+}
+
+class SearchViewRouteArgs {
+  const SearchViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'SearchViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SearchViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
 /// [SplashView]
 class SplashViewRoute extends PageRouteInfo<void> {
   const SplashViewRoute({List<PageRouteInfo>? children})
