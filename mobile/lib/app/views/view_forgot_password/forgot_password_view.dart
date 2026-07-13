@@ -31,6 +31,7 @@ class ForgotPasswordView extends StatelessWidget with ForgotPasswordWidgets {
             );
           }
         },
+
         builder: (context, state) {
           final viewModel = context.read<ForgotPasswordViewModel>();
           return Scaffold(
