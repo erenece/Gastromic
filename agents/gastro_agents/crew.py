@@ -40,10 +40,14 @@ def _build_llm():
     from crewai import LLM  # type: ignore
 
     if LLM_PROVIDER == "gemini":
-        return LLM(model=LLM_MODEL or "gemini/gemini-1.5-flash")
+        # CrewAI/litellm 'gemini/<model>' bekler; google-genai stili id'yi normalize et
+        model = LLM_MODEL or "gemini-2.0-flash"
+        if not model.startswith("gemini/"):
+            model = f"gemini/{model}"
+        return LLM(model=model)
     if LLM_PROVIDER == "openai":
         return LLM(model=LLM_MODEL or "gpt-4o-mini")
-    raise RuntimeError("crew modu için gerçek sağlayıcı gerekli: GASTRO_LLM_PROVIDER=gemini|openai")
+    raise RuntimeError("crew motoru için gerçek sağlayıcı gerekli: GASTRO_LLM_PROVIDER=gemini|openai")
 
 
 def build_tools():
@@ -125,6 +129,6 @@ def run_crew(prefs: UserPreferences) -> GastroData:
         request=prefs, profile=profile, candidates=survivors, debate=debate_log, route=route,
         notes=["crew modu (iskelet): CrewAI 3-ajan orkestrasyonu çalıştı.",
                 "LLM serbest çıktısından GastroData ayrıştırma Sprint 2/3'te tamamlanacak."],
-        meta={"mode": "crew", "llm": {"provider": llm.__class__.__name__}, "crew_raw": str(result)},
+        meta={"engine": "crew", "llm": {"provider": llm.__class__.__name__}, "crew_raw": str(result)},
     )
     return stabilize(data)

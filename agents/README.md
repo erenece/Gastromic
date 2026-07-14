@@ -2,74 +2,82 @@
 
 **Sorumlu:** Üye 2 — Scrum Master & AI Agent Engineer
 
-Bu katman AI çekirdeğini (ajanlar + müzakere + rota) barındırır. **API anahtarı
-olmadan** çalışır (varsayılan `mock` mod): jüri/takım arkadaşları `pip install pydantic`
-dışında bir şey kurmadan tüm hattı offline koşabilir. Gerçek LLM/RAG entegrasyonu
-`crew` moduyla (Sprint 2/3) devreye girer.
+AI çekirdeği: ajanlar + müzakere + rota + **AI beyni (Gemini)**.
 
-## Sprint 1 — İskelet (PDF plan → kod)
+**Mimari ilke:** Güvenlik-kritik mantık (alerjen vetosu, bütçe, TSP) **deterministik**
+katmanda kalır — Gemini burada halüsinasyonla alerjen sızdıramaz. **Gemini** yalnızca
+doğal-dil sentezini (GastroPass gurme rehber metni) üretir. Anahtar/SDK yoksa otomatik
+**mock**'a düşer; hat offline hiç kırılmaz.
 
-| # | Plan görevi | Karşılığı |
+## AI Beyni (Gemini)
+
+- Varsayılan sağlayıcı: **gemini** (`gemini-2.0-flash-001`), istemci: `google-genai`.
+- Aktive etmek için: `agents/.env` içine `GEMINI_API_KEY=...` (https://aistudio.google.com/apikey).
+- Anahtar yoksa → mock'a düşer, şablon özet üretir (offline çalışır).
+
+| Değişken | Varsayılan | Açıklama |
 |---|---|---|
-| 1 | `agents/` altında CrewAI iskeleti | [`crew.py`](gastro_agents/crew.py) |
-| 2 | Profiler Agent — prompt + tool | [`prompts/profiler.py`](gastro_agents/prompts/profiler.py) + [`tools/preference_tool.py`](gastro_agents/tools/preference_tool.py) |
-| 3 | Gurme RAG Agent — prompt | [`prompts/gourmet_rag.py`](gastro_agents/prompts/gourmet_rag.py) + [`tools/venue_retriever_tool.py`](gastro_agents/tools/venue_retriever_tool.py) |
-| 4 | Çalışan boş Router/Supervisor stub | [`router.py`](gastro_agents/router.py) |
+| `GASTRO_ENGINE` | `lite` | `lite` (deterministik omurga + AI sentez) \| `crew` (tam CrewAI) |
+| `GASTRO_LLM_PROVIDER` | `gemini` | `gemini` \| `openai` (S3) \| `mock` |
+| `GASTRO_LLM_MODEL` | `gemini-2.0-flash-001` | Gemini model id |
+| `GEMINI_API_KEY` | — | Gemini anahtarı (yoksa mock) |
+| `GASTRO_DEBATE_ROUNDS` | `3` | Agent Debate tur sayısı |
 
-## Sprint 2 — AI Beyni (PDF plan → kod)
+## Sprint 1 — İskelet · Sprint 2 — AI Beyni (PDF plan → kod)
 
-| # | Plan görevi | Karşılığı |
-|---|---|---|
-| 1 | Profiler + RAG + Optimizer'ı birbirine bağlama | [`router.py`](gastro_agents/router.py) tam hat + [`crew.py`](gastro_agents/crew.py) 3-ajan crew |
-| 2 | Agent Debate (3 iterasyon) müzakere mantığı | [`debate.py`](gastro_agents/debate.py) + [`prompts/debate.py`](gastro_agents/prompts/debate.py) |
-| 3 | Bütçe/lezzet/alerjen çatışma kuralları | [`conflicts.py`](gastro_agents/conflicts.py) |
-| 4 | Ajan çıktısını gastro_data JSON'da stabilize etme | [`stabilize.py`](gastro_agents/stabilize.py) |
-| 5 | Optimizer Agent'ı Üye 1'in TSP modülüne bağlama | [`tools/tsp_tool.py`](gastro_agents/tools/tsp_tool.py) + [`prompts/optimizer.py`](gastro_agents/prompts/optimizer.py) |
+| Sprint | # | Plan görevi | Karşılığı |
+|---|---|---|---|
+| 1 | 1 | CrewAI iskeleti | [`crew.py`](gastro_agents/crew.py) |
+| 1 | 2 | Profiler prompt + tool | [`prompts/profiler.py`](gastro_agents/prompts/profiler.py) + [`tools/preference_tool.py`](gastro_agents/tools/preference_tool.py) |
+| 1 | 3 | Gurme RAG prompt | [`prompts/gourmet_rag.py`](gastro_agents/prompts/gourmet_rag.py) + [`tools/venue_retriever_tool.py`](gastro_agents/tools/venue_retriever_tool.py) |
+| 1 | 4 | Router/Supervisor stub | [`router.py`](gastro_agents/router.py) |
+| 2 | 1 | Profiler+RAG+Optimizer bağlama | [`router.py`](gastro_agents/router.py) + [`crew.py`](gastro_agents/crew.py) |
+| 2 | 2 | Agent Debate (3 iterasyon) | [`debate.py`](gastro_agents/debate.py) + [`prompts/debate.py`](gastro_agents/prompts/debate.py) |
+| 2 | 3 | Bütçe/lezzet/alerjen çatışma kuralları | [`conflicts.py`](gastro_agents/conflicts.py) |
+| 2 | 4 | gastro_data JSON'da stabilize | [`stabilize.py`](gastro_agents/stabilize.py) |
+| 2 | 5 | Optimizer'ı TSP modülüne bağlama | [`tools/tsp_tool.py`](gastro_agents/tools/tsp_tool.py) + [`prompts/optimizer.py`](gastro_agents/prompts/optimizer.py) |
+| — | — | **AI beyni (Gemini) sentezi** | [`gemini_llm.py`](gastro_agents/gemini_llm.py) + [`llm.py`](gastro_agents/llm.py) + [`prompts/gastropass.py`](gastro_agents/prompts/gastropass.py) |
 
-Ortak veri sözleşmesi: [`contracts.py`](gastro_agents/contracts.py) (`gastro_data`,
-schema `0.2.0-sprint2` — Üye 3'ün resmi Pydantic modeliyle uzlaştırılacak).
-
-## Mimari (Sprint 2 tam hat)
+## Mimari
 
 ```
 UserPreferences (tercih ekranı)
         │
-        ▼
-  SupervisorRouter ── mode=mock (offline)  |  mode=crew (CrewAI + Gemini/OpenAI)
-        │
-        ├─▶ Profiler Agent ──(preference_normalizer)──▶ TasteProfile
-        ├─▶ Gurme RAG Agent ─(venue_retriever)────────▶ aday mekanlar (geniş)
-        ├─▶ Agent Debate (3 tur) ─ conflicts.py ile müzakere:
-        │     • DietGuardian    → alerjen/sağlık VETO
-        │     • BudgetLogistics → bütçe veto/itiraz
-        │     • GourmetCritic   → lezzet/otantiklik puanı
-        │        ⇒ uzlaşı mekan listesi + debate_log
-        └─▶ Optimizer Agent ─(tsp_route_solver)───────▶ GastroRoute (TSP)
+        ▼   engine=lite (varsayılan) | engine=crew (CrewAI)
+  SupervisorRouter
+        ├─▶ Profiler ──(preference_normalizer)──▶ TasteProfile          [deterministik]
+        ├─▶ Gurme RAG ─(venue_retriever)────────▶ aday mekanlar         [deterministik]
+        ├─▶ Agent Debate (3 tur) ─ conflicts.py:                         [deterministik = güvenlik rayı]
+        │      DietGuardian(alerjen VETO) · BudgetLogistics(bütçe) · GourmetCritic(lezzet)
+        ├─▶ Optimizer ─(tsp_route_solver)──────▶ GastroRoute            [deterministik]
+        └─▶ 🧠 AI Beyni (Gemini) ──▶ GastroPass rehber metni (ai_summary)  [LLM sentez]
         ▼
      stabilize() ⇒ GastroData (kanonik JSON)
 ```
 
-## Çalıştırma (mock — anahtar gerekmez)
+## Çalıştırma
 
 ```bash
+# Offline (anahtarsız — AI metni şablon olur):
 pip install pydantic
-python agents/run_demo.py          # repo kökünden
-# veya:  cd agents && python -m gastro_agents
-```
+python agents/run_demo.py
 
-Örnek çıktı (500 TL bütçe, süt/yumurta alerjisi, organik mod): Debate turist tuzağı
-+ bütçe aşan + sütlü mekanları eler → 3 uzlaşı mekan → TSP ile 6.43 km rota.
+# Gemini beyniyle (gerçek GastroPass metni):
+pip install -r agents/requirements.txt          # google-genai dahil
+echo "GEMINI_API_KEY=..." > agents/.env
+python agents/run_demo.py
+```
 
 ## Testler
 
 ```bash
-cd agents && python -m pytest -q          # 13 test (Sprint 1 + Sprint 2)
+cd agents && python -m pytest -q          # 18 test (Sprint 1 + 2 + LLM sağlayıcı)
 ```
 
-## Sprint 3'e devir (extension points)
+## Sprint 3'e devir
 
-- **Gerçek LLM:** `.env`'de `GASTRO_LLM_MODE=crew`, `GASTRO_LLM_PROVIDER=gemini|openai` + anahtar.
-- **Gerçek RAG:** `tools/venue_retriever_tool.py` içindeki CSV/mock kaynağı, embedding + ChromaDB ile (Üye 3) değişecek.
-- **Gerçek TSP:** `tools/tsp_tool.py::_try_member1_tsp` — Üye 1'in `optimization.tsp.solve` modülü gelince fallback devralınır.
-- **Alerjen taraması:** `conflicts.py::check_allergen` şu an ad/kategori sezgiseli; gerçek menü/içerik taraması Sprint 3.
-- **Debate tur sayısı:** `GASTRO_DEBATE_ROUNDS` (varsayılan 3).
+- **Gerçek RAG:** `tools/venue_retriever_tool.py` → embedding + ChromaDB (Üye 3).
+- **Gerçek TSP:** `tools/tsp_tool.py::_try_member1_tsp` → Üye 1'in `optimization.tsp.solve`.
+- **Menü-düzeyi alerjen taraması:** `conflicts.py::check_allergen` (şu an ad/kategori sezgiseli).
+- **LLM-içi debate:** ajanların Gemini ile gerçek müzakeresi (şu an deterministik).
+- **OpenAI sağlayıcı:** `llm.py` içine adapter.

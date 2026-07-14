@@ -112,5 +112,6 @@ class GastroData(BaseModel):
     candidates: list[VenueCandidate] = Field(default_factory=list)
     debate: list[DebateRound] = Field(default_factory=list)  # Sprint 2
     route: Optional[GastroRoute] = None  # Sprint 2: Optimizer/TSP çıktısı
+    ai_summary: Optional[str] = None  # AI beyni (Gemini) GastroPass rehber metni
     notes: list[str] = Field(default_factory=list)
     meta: dict = Field(default_factory=dict)
