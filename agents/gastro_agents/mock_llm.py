@@ -1,8 +1,7 @@
-"""Offline, deterministik sahte LLM.
+"""Offline, deterministik sahte LLM (fallback beyin).
 
-Gerçek sağlayıcı (Gemini/OpenAI) Sprint 2'de takılana kadar ajan hattının
-API anahtarı OLMADAN uçtan uca çalışmasını sağlar. Gerçek bir çıkarım yapmaz;
-sadece ajanların 'gerekçe' metnini simüle eder ve LLM bağlanacak yeri işaretler.
+Gemini anahtarı/SDK'sı yokken ajan hattının API çağrısı YAPMADAN uçtan uca çalışmasını
+sağlar. Gerçek çıkarım yapmaz; `note` neden mock'a düşüldüğünü taşır.
 """
 from __future__ import annotations
 
@@ -11,13 +10,11 @@ class MockLLM:
     provider = "mock"
     model = "mock-deterministic-v0"
 
-    def invoke(self, prompt: str, **kwargs) -> str:
-        head = ""
-        stripped = prompt.strip()
-        if stripped:
-            head = stripped.splitlines()[0][:80]
-        return f"[mock-llm] görev alındı: {head}"
+    def __init__(self, note: str | None = None):
+        self.note = note
 
-    # Bazı çağıranlar callable bekler; uyum için takma ad.
+    def invoke(self, prompt: str, system: str | None = None, **kwargs) -> str:
+        return "[mock-llm] " + (self.note or "offline — gerçek çıkarım yok")
+
     def __call__(self, prompt: str, **kwargs) -> str:
         return self.invoke(prompt, **kwargs)
