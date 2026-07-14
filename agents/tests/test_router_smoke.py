@@ -1,11 +1,7 @@
-"""Router/Supervisor stub smoke testleri (mock mod, offline).
-
-Retrospektif notu: Sprint 1'de unit test eforu yetersiz kalmıştı; bu dosya ajan
-katmanı için ilk güvenlik ağını kurar.
-"""
+"""Router/Supervisor smoke testleri (mock mod, offline) — Sprint 1 + Sprint 2 hattı."""
 from __future__ import annotations
 
-from gastro_agents.contracts import DailyMode, GastroData, UserPreferences
+from gastro_agents.contracts import DailyMode, GastroData, GastroRoute, UserPreferences
 from gastro_agents.router import SupervisorRouter
 
 
@@ -24,11 +20,11 @@ def test_router_runs_offline_and_returns_gastrodata():
     assert isinstance(out, GastroData)
     assert out.meta["mode"] == "mock"
     assert out.meta["llm"]["provider"] == "mock"
+    assert out.schema_version == "0.2.0-sprint2"
 
 
 def test_profiler_derives_avoided_ingredients():
     out = SupervisorRouter(mode="mock").run(_prefs())
-    # süt alerjeni + laktoz intoleransı -> süt türevleri kaçınılacaklara girer
     assert "süt" in out.profile.avoid_ingredients
     assert "peynir" in out.profile.avoid_ingredients  # laktoz map'inden
     assert out.profile.budget_band == "orta"  # 500 TL
@@ -43,14 +39,16 @@ def test_no_tourist_traps_in_candidates():
 
 def test_gastrodata_json_roundtrip():
     out = SupervisorRouter(mode="mock").run(_prefs())
-    dumped = out.model_dump_json()
-    reloaded = GastroData.model_validate_json(dumped)
+    reloaded = GastroData.model_validate_json(out.model_dump_json())
     assert reloaded.profile.mode == out.profile.mode
     assert len(reloaded.candidates) == len(out.candidates)
+    assert len(reloaded.debate) == len(out.debate)
 
 
-def test_debate_and_route_deferred_to_sprint2():
+def test_route_and_debate_active_in_sprint2():
     out = SupervisorRouter(mode="mock").run(_prefs())
-    assert out.route is None  # TSP rota Sprint 2
-    assert "optimizer" in out.meta["pending"]
-    assert "agent_debate" in out.meta["pending"]
+    # Sprint 2: debate ve rota artık AKTİF (Sprint 1'de ertelenmişti)
+    assert len(out.debate) == 3, "3 iterasyonlu Agent Debate beklenir"
+    assert isinstance(out.route, GastroRoute)
+    assert out.route.ordered_place_ids, "optimize rota beklenir"
+    assert "optimizer" in out.meta["agents"]

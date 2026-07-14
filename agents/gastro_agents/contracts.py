@@ -1,9 +1,11 @@
-"""gastro_data — ajan hattının ortak veri sözleşmesi (Sprint 1 taslağı).
+"""gastro_data — ajan hattının ortak veri sözleşmesi.
+
+Sprint 1: temel şema (profil + adaylar).
+Sprint 2: Agent Debate + Optimizer/TSP rota alanları eklendi (schema 0.2.0).
 
 NOT (kritik bağımlılık #1): Bu, Üye 2'nin ajanlarının tükettiği/ürettiği geçici
-Sprint-1 sözleşmesidir. Üye 3'ün resmi `gastro_data` Pydantic modeli hazır olunca
-Sprint 2 başında bu şema onunla uzlaştırılacaktır. Alan adları bilerek Flutter
-tercih ekranıyla (bütçe/alerjen/hastalık/günlük mod) hizalanmıştır.
+sözleşmedir. Üye 3'ün resmi `gastro_data` Pydantic modeli hazır olunca Sprint 2/3'te
+uzlaştırılacaktır. Alan adları bilerek Flutter tercih ekranıyla hizalanmıştır.
 """
 from __future__ import annotations
 
@@ -28,7 +30,7 @@ class GeoPoint(BaseModel):
 
 
 class UserPreferences(BaseModel):
-    """Kullanıcı tercih ekranından (Sprint 1 Flutter) gelen girdi = pipeline girişi."""
+    """Kullanıcı tercih ekranından (Flutter) gelen girdi = pipeline girişi."""
 
     budget_per_person: int = Field(ge=50, le=3000, description="Kişi başı bütçe (TL)")
     city: str = "İstanbul"
@@ -67,15 +69,48 @@ class VenueCandidate(BaseModel):
     location: Optional[GeoPoint] = None
     tourist_trap_score: float = 0.0  # 0 = otantik, 1 = turist tuzağı
     match_reason: str = ""
+    # Sprint 2 (debate) alanları
+    estimated_cost_per_person: Optional[int] = None
+    consensus_score: float = 0.0
+
+
+# --- Sprint 2: Agent Debate ---
+class DebateTurn(BaseModel):
+    """Müzakerede tek bir ajan-personasının tek hamlesi."""
+
+    round: int
+    persona: str  # DietGuardian | GourmetCritic | BudgetLogistics | Supervisor
+    action: str  # veto | downrank | uprank | approve
+    target_place_id: str
+    reason: str
+
+
+class DebateRound(BaseModel):
+    """3-iterasyonlu müzakerenin tek turu."""
+
+    index: int
+    phase: str = ""  # filtreleme | puanlama | uzlasma
+    turns: list[DebateTurn] = Field(default_factory=list)
+    dropped: list[str] = Field(default_factory=list)  # bu turda elenen place_id'ler
+    surviving: list[str] = Field(default_factory=list)
+    converged: bool = False
+
+
+# --- Sprint 2: Optimizer / TSP rota ---
+class GastroRoute(BaseModel):
+    ordered_place_ids: list[str] = Field(default_factory=list)
+    total_distance_km: float = 0.0
+    solver: str = ""  # member1_tsp | nearest_neighbor_fallback | trivial
 
 
 class GastroData(BaseModel):
     """Ajan hattının uçtan uca çıktı sözleşmesi (JSON'a stabilize edilir)."""
 
-    schema_version: str = "0.1.0-sprint1"
+    schema_version: str = "0.2.0-sprint2"
     request: UserPreferences
     profile: TasteProfile
     candidates: list[VenueCandidate] = Field(default_factory=list)
-    route: Optional[list[str]] = None  # Sprint 2: Optimizer/TSP rota çıktısı
+    debate: list[DebateRound] = Field(default_factory=list)  # Sprint 2
+    route: Optional[GastroRoute] = None  # Sprint 2: Optimizer/TSP çıktısı
     notes: list[str] = Field(default_factory=list)
     meta: dict = Field(default_factory=dict)
