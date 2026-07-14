@@ -26,5 +26,5 @@ LLM_MODE = os.getenv("GASTRO_LLM_MODE", "mock").lower()
 LLM_PROVIDER = os.getenv("GASTRO_LLM_PROVIDER", "mock").lower()  # mock|gemini|openai
 LLM_MODEL = os.getenv("GASTRO_LLM_MODEL", "")
 
-# Agent Debate tur sayısı — Sprint 1'de 0, Sprint 2'de 3 olacak.
-DEBATE_ROUNDS = int(os.getenv("GASTRO_DEBATE_ROUNDS", "0"))
+# Agent Debate tur sayısı — Sprint 2: 3 iterasyon (filtreleme/puanlama/uzlaşma).
+DEBATE_ROUNDS = int(os.getenv("GASTRO_DEBATE_ROUNDS", "3"))
