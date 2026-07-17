@@ -144,6 +144,22 @@ class LoginViewRouteArgs {
 }
 
 /// generated route for
+/// [MainWrapper]
+class MainWrapperRoute extends PageRouteInfo<void> {
+  const MainWrapperRoute({List<PageRouteInfo>? children})
+    : super(MainWrapperRoute.name, initialChildren: children);
+
+  static const String name = 'MainWrapperRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MainWrapper();
+    },
+  );
+}
+
+/// generated route for
 /// [OnboardingView]
 class OnboardingViewRoute extends PageRouteInfo<OnboardingViewRouteArgs> {
   OnboardingViewRoute({Key? key, List<PageRouteInfo>? children})
@@ -361,6 +377,22 @@ class SearchViewRouteArgs {
 
   @override
   int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [SettingsView]
+class SettingsViewRoute extends PageRouteInfo<void> {
+  const SettingsViewRoute({List<PageRouteInfo>? children})
+    : super(SettingsViewRoute.name, initialChildren: children);
+
+  static const String name = 'SettingsViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SettingsView();
+    },
+  );
 }
 
 /// generated route for
