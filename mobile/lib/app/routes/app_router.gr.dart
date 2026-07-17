@@ -188,6 +188,50 @@ class PreferencesViewRouteArgs {
 }
 
 /// generated route for
+/// [RatingView]
+class RatingViewRoute extends PageRouteInfo<RatingViewRouteArgs> {
+  RatingViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        RatingViewRoute.name,
+        args: RatingViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'RatingViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<RatingViewRouteArgs>(
+        orElse: () => const RatingViewRouteArgs(),
+      );
+      return RatingView(key: args.key);
+    },
+  );
+}
+
+class RatingViewRouteArgs {
+  const RatingViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'RatingViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RatingViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
 /// [RegisterView]
 class RegisterViewRoute extends PageRouteInfo<RegisterViewRouteArgs> {
   RegisterViewRoute({Key? key, List<PageRouteInfo>? children})
