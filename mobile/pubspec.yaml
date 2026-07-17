@@ -54,6 +54,7 @@ dependencies:
   hive_flutter: ^1.1.0
   lottie: ^3.3.3
   rxdart: ^0.28.0
+  geocoding: ^5.0.0
 
 dev_dependencies:
   flutter_test:
