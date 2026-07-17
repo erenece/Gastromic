@@ -10,6 +10,8 @@ import 'package:gastromic/app/views/view_register/register_view.dart';
 import 'package:gastromic/app/views/view_search/search_view.dart';
 import 'package:gastromic/app/views/view_splash/splash_view.dart';
 import 'package:gastromic/app/views/view_venue_detail/venue_detail_view.dart';
+import 'package:gastromic/app/views/view_settings/settings_view.dart';
+import 'package:gastromic/app/wrapper/main_wrapper.dart';
 
 part 'app_router.gr.dart';
 
@@ -23,9 +25,15 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: RegisterViewRoute.page),
     AutoRoute(page: ForgotPasswordViewRoute.page),
     AutoRoute(page: PreferencesViewRoute.page),
-    AutoRoute(page: SearchViewRoute.page),
     AutoRoute(page: VenueDetailViewRoute.page),
-    AutoRoute(page: RatingViewRoute.page),
-    AutoRoute(page: HomeViewRoute.page),
+    AutoRoute(
+      page: MainWrapperRoute.page,
+      children: [
+        AutoRoute(page: HomeViewRoute.page, initial: true),
+        AutoRoute(page: SearchViewRoute.page),
+        AutoRoute(page: RatingViewRoute.page),
+        AutoRoute(page: SettingsViewRoute.page),
+      ],
+    ),
   ];
 }
