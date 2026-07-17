@@ -221,5 +221,6 @@ extension AppColorsContext on BuildContext {
   Color get cBackground => Theme.of(this).scaffoldBackgroundColor;
   Color get cTextPrimary => Theme.of(this).colorScheme.onSurface;
   Color get cPrimary => Theme.of(this).colorScheme.primary;
+  Color get cSecondary => Theme.of(this).colorScheme.secondary;
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
 }
