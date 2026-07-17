@@ -4,6 +4,7 @@ class VenueModel {
   final double rating;
   final String imageUrl;
   final String category;
+  final String subCategory;
 
   const VenueModel({
     required this.id,
@@ -11,7 +12,11 @@ class VenueModel {
     required this.rating,
     required this.imageUrl,
     required this.category,
+    this.subCategory = '',
   });
+
+  String get categoryLine =>
+      subCategory.isEmpty ? category : '$category • $subCategory';
 
   factory VenueModel.fromMap(String id, Map<String, dynamic> map) {
     return VenueModel(
@@ -20,6 +25,7 @@ class VenueModel {
       rating: (map['rating'] ?? 0).toDouble(),
       imageUrl: map['imageUrl'] ?? '',
       category: map['category'] ?? '',
+      subCategory: map['subCategory'] ?? '',
     );
   }
 
@@ -29,6 +35,7 @@ class VenueModel {
       'rating': rating,
       'imageUrl': imageUrl,
       'category': category,
+      'subCategory': subCategory,
     };
   }
 }
