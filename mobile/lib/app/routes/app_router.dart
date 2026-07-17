@@ -4,6 +4,7 @@ import 'package:gastromic/app/views/view_forgot_password/forgot_password_view.da
 import 'package:gastromic/app/views/view_login/login_view.dart';
 import 'package:gastromic/app/views/view_onboarding/onboarding_view.dart';
 import 'package:gastromic/app/views/view_preferences/preferences_view.dart';
+import 'package:gastromic/app/views/view_rating/rating_view.dart';
 import 'package:gastromic/app/views/view_register/register_view.dart';
 import 'package:gastromic/app/views/view_search/search_view.dart';
 import 'package:gastromic/app/views/view_splash/splash_view.dart';
@@ -23,5 +24,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: PreferencesViewRoute.page),
     AutoRoute(page: SearchViewRoute.page),
     AutoRoute(page: VenueDetailViewRoute.page),
+    AutoRoute(page: RatingViewRoute.page),
   ];
 }
