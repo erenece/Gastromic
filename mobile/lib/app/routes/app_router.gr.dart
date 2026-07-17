@@ -290,3 +290,52 @@ class SplashViewRoute extends PageRouteInfo<void> {
     },
   );
 }
+
+/// generated route for
+/// [VenueDetailView]
+class VenueDetailViewRoute extends PageRouteInfo<VenueDetailViewRouteArgs> {
+  VenueDetailViewRoute({
+    Key? key,
+    String venueId = 'mock-1',
+    List<PageRouteInfo>? children,
+  }) : super(
+         VenueDetailViewRoute.name,
+         args: VenueDetailViewRouteArgs(key: key, venueId: venueId),
+         initialChildren: children,
+       );
+
+  static const String name = 'VenueDetailViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<VenueDetailViewRouteArgs>(
+        orElse: () => const VenueDetailViewRouteArgs(),
+      );
+      return VenueDetailView(key: args.key, venueId: args.venueId);
+    },
+  );
+}
+
+class VenueDetailViewRouteArgs {
+  const VenueDetailViewRouteArgs({this.key, this.venueId = 'mock-1'});
+
+  final Key? key;
+
+  final String venueId;
+
+  @override
+  String toString() {
+    return 'VenueDetailViewRouteArgs{key: $key, venueId: $venueId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! VenueDetailViewRouteArgs) return false;
+    return key == other.key && venueId == other.venueId;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ venueId.hashCode;
+}
