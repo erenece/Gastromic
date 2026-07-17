@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:gastromic/app/views/view_forgot_password/forgot_password_view.dart';
+import 'package:gastromic/app/views/view_home/home_view.dart';
 import 'package:gastromic/app/views/view_login/login_view.dart';
 import 'package:gastromic/app/views/view_onboarding/onboarding_view.dart';
 import 'package:gastromic/app/views/view_preferences/preferences_view.dart';
@@ -25,5 +26,6 @@ class AppRouter extends RootStackRouter {
     AutoRoute(page: SearchViewRoute.page),
     AutoRoute(page: VenueDetailViewRoute.page),
     AutoRoute(page: RatingViewRoute.page),
+    AutoRoute(page: HomeViewRoute.page),
   ];
 }

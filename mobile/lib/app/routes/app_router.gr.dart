@@ -56,6 +56,50 @@ class ForgotPasswordViewRouteArgs {
 }
 
 /// generated route for
+/// [HomeView]
+class HomeViewRoute extends PageRouteInfo<HomeViewRouteArgs> {
+  HomeViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        HomeViewRoute.name,
+        args: HomeViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'HomeViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<HomeViewRouteArgs>(
+        orElse: () => const HomeViewRouteArgs(),
+      );
+      return HomeView(key: args.key);
+    },
+  );
+}
+
+class HomeViewRouteArgs {
+  const HomeViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'HomeViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! HomeViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
 /// [LoginView]
 class LoginViewRoute extends PageRouteInfo<LoginViewRouteArgs> {
   LoginViewRoute({Key? key, List<PageRouteInfo>? children})
