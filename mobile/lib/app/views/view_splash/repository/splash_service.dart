@@ -1,24 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive/hive.dart';
 
-class AuthService {
+class SplashService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Box _settingsBox = Hive.box('settings');
 
-  Future<UserCredential> signInWithEmail({
-    required String email,
-    required String password,
-  }) {
-    return _auth.signInWithEmailAndPassword(email: email, password: password);
-  }
+  bool get isLoggedIn => _auth.currentUser != null;
 
-  Future<UserCredential> signInWithGoogle() {
-    return _auth.signInWithProvider(GoogleAuthProvider());
-  }
-
-  Future<void> sendPasswordResetEmail(String email) {
-    return _auth.sendPasswordResetEmail(email: email);
-  }
+  bool get isOnboardingSeen =>
+      _settingsBox.get('onboarding_seen', defaultValue: false) as bool;
 
   Future<bool> isPreferencesCompleted() async {
     final uid = _auth.currentUser?.uid;

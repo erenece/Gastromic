@@ -58,9 +58,6 @@ mixin LoginFormWidget {
               onChanged: onPasswordChanged,
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Şifre boş olamaz';
-                if (!value.isValidPassword) {
-                  return 'Şifre en az 8 karakter, 1 büyük harf ve 1 rakam içermeli';
-                }
                 return null;
               },
             ),

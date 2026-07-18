@@ -1,18 +1,20 @@
 part of 'splash_view_model.dart';
 
+enum SplashDestination { none, onboarding, login, preferences, home }
+
 class SplashState {
   final ViewStatus status;
-  final bool navigateToOnboarding;
+  final SplashDestination destination;
 
   const SplashState({
     this.status = ViewStatus.initial,
-    this.navigateToOnboarding = false,
+    this.destination = SplashDestination.none,
   });
 
-  SplashState copyWith({ViewStatus? status, bool? navigateToOnboarding}) {
+  SplashState copyWith({ViewStatus? status, SplashDestination? destination}) {
     return SplashState(
       status: status ?? this.status,
-      navigateToOnboarding: navigateToOnboarding ?? this.navigateToOnboarding,
+      destination: destination ?? this.destination,
     );
   }
 }

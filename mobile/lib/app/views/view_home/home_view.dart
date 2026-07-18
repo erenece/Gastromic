@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gastromic/app/routes/app_router.dart';
 
 import 'package:gastromic/app/views/view_home/view_model/home_view_model.dart';
 import 'package:gastromic/app/views/view_home/widgets/home_widgets.dart';
@@ -34,14 +35,22 @@ class HomeView extends StatelessWidget with HomeWidgets {
                           nearbySection(
                             context,
                             venues: state.nearbyVenues,
-                            onVenueTap: (venue) {},
+                            onVenueTap: (venue) {
+                              context.router.push(
+                                VenueDetailViewRoute(venueId: venue.id),
+                              );
+                            },
                             onSeeAll: () {},
                           ),
                           context.sizedHeightBoxMedium,
                           favoritesSection(
                             context,
                             venues: state.favoriteVenues,
-                            onVenueTap: (venue) {},
+                            onVenueTap: (venue) {
+                              context.router.push(
+                                VenueDetailViewRoute(venueId: venue.id),
+                              );
+                            },
                           ),
                           context.sizedHeightBoxMedium,
                         ],
