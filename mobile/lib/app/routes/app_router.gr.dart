@@ -204,6 +204,50 @@ class OnboardingViewRouteArgs {
 }
 
 /// generated route for
+/// [OperationView]
+class OperationViewRoute extends PageRouteInfo<OperationViewRouteArgs> {
+  OperationViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        OperationViewRoute.name,
+        args: OperationViewRouteArgs(key: key),
+        initialChildren: children,
+      );
+
+  static const String name = 'OperationViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<OperationViewRouteArgs>(
+        orElse: () => const OperationViewRouteArgs(),
+      );
+      return OperationView(key: args.key);
+    },
+  );
+}
+
+class OperationViewRouteArgs {
+  const OperationViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'OperationViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! OperationViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
+}
+
+/// generated route for
 /// [PreferencesView]
 class PreferencesViewRoute extends PageRouteInfo<PreferencesViewRouteArgs> {
   PreferencesViewRoute({Key? key, List<PageRouteInfo>? children})
