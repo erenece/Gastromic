@@ -51,7 +51,14 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
         email: state.email,
         password: state.password,
       );
-      emit(state.copyWith(status: ViewStatus.success, isLoggedIn: true));
+      final completed = await _authService.isPreferencesCompleted();
+      emit(
+        state.copyWith(
+          status: ViewStatus.success,
+          isLoggedIn: true,
+          preferencesCompleted: completed,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(status: ViewStatus.failure, errorMessage: e.toString()),

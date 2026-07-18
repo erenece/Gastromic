@@ -27,7 +27,13 @@ class LoginView extends StatelessWidget with LoginWidgets {
               context,
             ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
           }
-          if (state.isLoggedIn) {}
+          if (state.isLoggedIn) {
+            if (state.preferencesCompleted) {
+              context.router.replaceAll([const MainWrapperRoute()]);
+            } else {
+              context.router.replaceAll([PreferencesViewRoute()]);
+            }
+          }
         },
         builder: (context, state) {
           final viewModel = context.read<LoginViewModel>();

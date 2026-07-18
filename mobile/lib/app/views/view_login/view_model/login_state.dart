@@ -7,6 +7,7 @@ class LoginState {
   final bool obscurePassword;
   final String? errorMessage;
   final bool isLoggedIn;
+  final bool preferencesCompleted;
 
   const LoginState({
     this.status = ViewStatus.initial,
@@ -15,6 +16,7 @@ class LoginState {
     this.obscurePassword = true,
     this.errorMessage,
     this.isLoggedIn = false,
+    this.preferencesCompleted = false,
   });
 
   LoginState copyWith({
@@ -24,6 +26,7 @@ class LoginState {
     bool? obscurePassword,
     String? errorMessage,
     bool? isLoggedIn,
+    bool? preferencesCompleted,
   }) {
     return LoginState(
       status: status ?? this.status,
@@ -32,6 +35,7 @@ class LoginState {
       obscurePassword: obscurePassword ?? this.obscurePassword,
       errorMessage: errorMessage ?? this.errorMessage,
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      preferencesCompleted: preferencesCompleted ?? this.preferencesCompleted,
     );
   }
 }

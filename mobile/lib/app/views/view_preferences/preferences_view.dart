@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gastromic/app/routes/app_router.dart';
 
 import 'package:gastromic/app/views/view_preferences/view_model/preferences_view_model.dart';
 import 'package:gastromic/app/views/view_preferences/widgets/preferences_widget.dart';
@@ -24,7 +25,7 @@ class PreferencesView extends StatelessWidget with PreferencesWidgets {
             ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
           }
           if (state.isCompleted) {
-            //home sayfası
+            context.router.replaceAll([const MainWrapperRoute()]);
           }
         },
         builder: (context, state) {
