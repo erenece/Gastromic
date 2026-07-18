@@ -30,7 +30,12 @@ class HomeView extends StatelessWidget with HomeWidgets {
                         children: [
                           header(context, locationName: state.locationName),
                           context.sizedHeightBoxNormal,
-                          mapCard(context, onExplore: () {}),
+                          mapCard(
+                            context,
+                            onExplore: () {
+                              context.router.push(OperationViewRoute());
+                            },
+                          ),
                           context.sizedHeightBoxMedium,
                           nearbySection(
                             context,
