@@ -9,7 +9,7 @@ def clean_places():
     file_path = os.path.join(PROCESSED_DIR, "places.csv")
 
     if not os.path.exists(file_path):
-        print("File was not found")
+        print("places.csv file was not found")
         return
 
     df = pd.read_csv(file_path)
@@ -28,14 +28,43 @@ def clean_places():
     "vejetaryen restoran": "Vegetarian Restaurant",
     "vegan restoran": "Vegan Restaurant"
     }
-#WLKFM
-
-
-
-
 
     if "Category" in df.columns:
         df["Category"] = df["Category"].replace(category_map)
+
+    if "Place ID" in df.columns:
+        before = len(df)
+
+        agg_rules = {}
+        if "Place Name" in df.columns:
+            agg_rules["Place Name"] = "first"
+        if "City" in df.columns:
+            agg_rules["City"] = "first"
+        if "Category" in df.columns:
+            agg_rules["Category"] = lambda s: ", ".join(sorted(set(s.dropna())))
+        if "Address" in df.columns:
+            agg_rules["Address"] = "first"
+        if "Latitude" in df.columns:
+            agg_rules["Latitude"] = "first"
+        if "Longitude" in df.columns:
+            agg_rules["Longitude"] = "first"
+        if "Types" in df.columns:
+            agg_rules["Types"] = "first"
+        if "Average Rating" in df.columns:
+            agg_rules["Average Rating"] = "mean"
+        if "Total Review Count" in df.columns:
+            agg_rules["Total Review Count"] = "max"
+        if "Price Level" in df.columns:
+            agg_rules["Price Level"] = lambda s: (
+                s.mode().iloc[0] if not s.mode().empty
+                else (s.dropna().iloc[0] if s.notna().any() else np.nan)
+            )
+
+        df = df.groupby("Place ID", as_index=False).agg(agg_rules)
+
+        removed = before - len(df)
+        if removed > 0:
+            print(f"Dedupe: {before} rows -> {len(df)} unique places ({removed} duplicate rows merged)")
 
     if "Average Rating" in df.columns:
         missing_rating = df["Average Rating"].isna()
@@ -59,10 +88,19 @@ def clean_reviews():
     file_path = os.path.join(PROCESSED_DIR, "reviews.csv")
 
     if not os.path.exists(file_path):
-        print("Reviews file was not found")
+        print("reviews.csv file was not found")
         return
 
     df = pd.read_csv(file_path)
+
+    before1 = len(df)
+
+    df = df.dropna(subset=['Review Text'])
+    df = df.drop_duplicates(subset=['Review Text'])
+
+    removed1 = before1 - len(df)
+    if removed1 > 0:
+        print(f"Reviews: {removed1} records removed, {len(df)} records remaining.")
 
     if "Author" in df.columns:
         df["Author"] = df["Author"].astype(str).apply(
@@ -70,6 +108,8 @@ def clean_reviews():
         )
 
     df.to_csv(file_path, index=False, encoding="utf-8-sig")
+
+    print(df.isnull().sum())
 
 if __name__ == "__main__":
     clean_places()
