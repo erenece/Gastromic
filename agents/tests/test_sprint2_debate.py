@@ -1,7 +1,7 @@
 """Sprint 2 birim testleri: Agent Debate, çatışma kuralları, TSP, stabilize."""
 from __future__ import annotations
 
-from gastro_agents.conflicts import check_allergen, check_budget, taste_score
+from gastro_agents.conflicts import check_allergen, check_budget, check_busyness, taste_score
 from gastro_agents.contracts import (
     DailyMode,
     GastroData,
@@ -60,6 +60,23 @@ def test_higher_budget_keeps_more_venues():
     assert len(hi) > len(lo), "yüksek bütçe daha çok mekan bırakmalı"
 
 
+def test_busyness_downranks_crowded_venue():
+    """Yoğunluk konfor kısıtı: veto etmez ama kalabalık mekanı geri düşürür."""
+    profile = _profile(budget=2000)
+    calm = VenueCandidate(place_id="calm", name="Sakin Yer", category="organik",
+                          rating=4.5, price_level=2, busyness=0.20)
+    busy = VenueCandidate(place_id="busy", name="Kalabalik Yer", category="organik",
+                          rating=4.5, price_level=2, busyness=0.95, quietest_hour=15)
+    survivors, log = run_debate([busy, calm], profile, rounds=3)
+
+    ids = [c.place_id for c in survivors]
+    assert ids == ["calm", "busy"], "kalabalık mekan puan kırılıp geri düşmeli"
+    assert {"calm", "busy"} == set(ids), "yoğunluk veto etmemeli, sadece sıralamayı değiştirmeli"
+    downranks = [t for r in log for t in r.turns
+                 if t.action == "downrank" and t.target_place_id == "busy"]
+    assert downranks and "yoğunluk" in downranks[0].reason
+
+
 # --- Çatışma kuralları ---
 def test_conflict_rules_priority():
     profile = _profile(budget=500)
@@ -69,7 +86,40 @@ def test_conflict_rules_priority():
     pricey = VenueCandidate(place_id="z", name="Fine Dining", category="gurme", price_level=4)
     assert check_budget(cheap, profile)[0] == "ok"
     assert check_budget(pricey, profile)[0] == "veto"
-    assert taste_score(VenueCandidate(place_id="t", name="A", rating=4.6, tourist_trap_score=0.0)) == 4.6
+
+
+def test_allergen_matches_english_venue_data():
+    """Gerçek veri seti İngilizce; sadece Türkçe token aramak vetoyu etkisiz bırakıyordu."""
+    profile = _profile()  # süt + laktoz intoleransı
+    en = VenueCandidate(place_id="en", name="Moda Ice Cream Shop", category="Ice Cream Shop",
+                        types="ice_cream_shop, dessert_shop, food")
+    assert check_allergen(en, profile) is not None, "İngilizce dondurmacı süt vetosu almalı"
+
+
+def test_gluten_free_venue_is_not_vetoed_for_celiac():
+    """'Glutensiz' mekanı çölyak hastasına yasaklamak tam ters etki olurdu."""
+    profile = normalize_preferences(
+        UserPreferences(budget_per_person=1000, sensitivities=["çölyak"])
+    )
+    gf = VenueCandidate(place_id="gf", name="Nohut Falafel (Glutensiz Mutfak)",
+                        category="Restaurant", types="restaurant, food")
+    assert check_allergen(gf, profile) is None
+
+
+def test_vegan_venue_is_not_vetoed_for_dairy():
+    profile = _profile()  # süt alerjisi
+    vegan = VenueCandidate(place_id="vg", name="Bi Nevi Deli", category="Vegan Restaurant",
+                           types="vegan_restaurant, restaurant, food")
+    assert check_allergen(vegan, profile) is None
+
+
+def test_rating_inflation_is_shrunk_by_review_count():
+    """3 yorumla 5.0 alan mekan, 2000 yorumla 4.7 alanı geçmemeli."""
+    few = VenueCandidate(place_id="few", name="Yeni Yer", rating=5.0, review_count=3)
+    many = VenueCandidate(place_id="many", name="Koklu Yer", rating=4.7, review_count=2000)
+    assert taste_score(many) > taste_score(few)
+    # az yorumlu 5.0 önsel ortalamaya (4.0) doğru büzülür
+    assert taste_score(few) < 4.5
 
 
 # --- TSP / Optimizer ---

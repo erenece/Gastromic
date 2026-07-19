@@ -61,3 +61,13 @@ def test_route_and_debate_active_in_sprint2():
 def test_ai_summary_present_even_in_mock():
     out = _run()
     assert out.ai_summary, "mock modda bile şablon GastroPass özeti beklenir"
+
+
+def test_route_is_capped_to_realistic_stop_count():
+    """Gerçek veri setinde uzlaşı listesi kabarabilir; rota MAX_ROUTE_STOPS ile sınırlı."""
+    from gastro_agents.config import MAX_ROUTE_STOPS
+
+    out = _run()
+    assert len(out.route.ordered_place_ids) <= MAX_ROUTE_STOPS
+    # rota durakları uzlaşı adaylarının alt kümesi olmalı (stabilize güvencesi)
+    assert set(out.route.ordered_place_ids) <= {c.place_id for c in out.candidates}

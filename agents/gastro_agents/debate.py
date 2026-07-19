@@ -17,7 +17,7 @@ sağlayıcı) prompts/debate.py bu protokolü LLM'e anlatır.
 """
 from __future__ import annotations
 
-from .conflicts import check_allergen, check_budget, estimate_cost, taste_score
+from .conflicts import check_allergen, check_budget, check_busyness, estimate_cost, taste_score
 from .contracts import DebateRound, DebateTurn, TasteProfile, VenueCandidate
 
 
@@ -68,6 +68,13 @@ def run_debate(
             if verdict == "downrank":
                 c.consensus_score -= 1.5
                 turns.append(_turn(2, "BudgetLogistics", "downrank", c, f"~{cost}TL bütçe üstü — puan kırıldı"))
+            # Yoğunluk itirazı (konfor kısıtı — veto değil, puan kırar)
+            busy_verdict, busyness = check_busyness(c)
+            if busy_verdict == "downrank":
+                c.consensus_score -= 1.0
+                quiet = f", en sakin saat {c.quietest_hour}:00" if c.quietest_hour is not None else ""
+                turns.append(_turn(2, "BudgetLogistics", "downrank", c,
+                                   f"ziyaret saatinde yoğunluk %{int(busyness * 100)} — kalabalık{quiet}"))
         survivors.sort(key=lambda c: -c.consensus_score)
         log.append(DebateRound(index=2, phase="puanlama", turns=turns, dropped=[],
                                surviving=[c.place_id for c in survivors]))
