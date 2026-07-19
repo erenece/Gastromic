@@ -42,6 +42,9 @@ class UserPreferences(BaseModel):
     daily_mode: DailyMode = DailyMode.ORGANIK
     smoking_area: bool = False
     alcohol_served: bool = False
+    # Ziyaret zamanı — yoğunluk (popular times) sorgusu için (profil ekranındaki "gün")
+    visit_day: str = "Saturday"  # density veri seti İngilizce gün adı kullanıyor
+    visit_hour: int = Field(default=20, ge=0, le=23)
 
 
 class TasteProfile(BaseModel):
@@ -63,6 +66,7 @@ class VenueCandidate(BaseModel):
     place_id: str
     name: str
     category: str = ""
+    types: str = ""  # Google Places tip etiketleri (vegan_restaurant, bakery, ...)
     rating: Optional[float] = None
     review_count: Optional[int] = None
     price_level: Optional[int] = None
@@ -72,6 +76,10 @@ class VenueCandidate(BaseModel):
     # Sprint 2 (debate) alanları
     estimated_cost_per_person: Optional[int] = None
     consensus_score: float = 0.0
+    # Yoğunluk (Üye 1 popular-times verisi). NOT: 0.0-1.0 normalize — Flutter
+    # operation_view'ın busyness sözleşmesiyle birebir hizalı (veri seti 0-100'dür).
+    busyness: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    quietest_hour: Optional[int] = Field(default=None, ge=0, le=23)
 
 
 # --- Sprint 2: Agent Debate ---

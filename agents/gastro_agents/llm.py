@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 
-from .config import LLM_MODEL, LLM_PROVIDER
+from .config import LLM_MODEL, LLM_PROVIDER, THINKING_BUDGET
 from .mock_llm import MockLLM
 
 
@@ -21,7 +21,11 @@ def build_llm(provider: str | None = None, model: str | None = None):
         try:
             from .gemini_llm import GeminiLLM
 
-            return GeminiLLM(model=model or LLM_MODEL or None, api_key=api_key)
+            return GeminiLLM(
+                model=model or LLM_MODEL or None,
+                api_key=api_key,
+                thinking_budget=THINKING_BUDGET,
+            )
         except ImportError:
             return MockLLM(note="google-genai kurulu değil (pip install google-genai) — mock'a düşüldü")
         except Exception as exc:  # pragma: no cover - beklenmeyen istemci hatası

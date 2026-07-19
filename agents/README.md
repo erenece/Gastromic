@@ -22,6 +22,22 @@ doğal-dil sentezini (GastroPass gurme rehber metni) üretir. Anahtar/SDK yoksa 
 | `GASTRO_LLM_MODEL` | `gemini-2.0-flash-001` | Gemini model id |
 | `GEMINI_API_KEY` | — | Gemini anahtarı (yoksa mock) |
 | `GASTRO_DEBATE_ROUNDS` | `3` | Agent Debate tur sayısı |
+| `GASTRO_MAX_ROUTE_STOPS` | `4` | Bir günlük rotadaki azami durak |
+
+## Veri kaynakları (Üye 1'in data_pipeline'ı)
+
+| Dosya | Kullanım | Not |
+|---|---|---|
+| `data_pipeline/data/processed/places.csv` | Gurme RAG mekan havuzu (3434 mekan / 7 şehir) | BOM'lu; `Place ID`/`Place Name`/`Average Rating`/`Price Level` başlıkları [`venue_retriever_tool.py`](gastro_agents/tools/venue_retriever_tool.py) içinde eşlenir |
+| `data_pipeline/data/processed/density_training_data.csv` | Yoğunluk (popular times) | Veri seti **0-100**; tool dışarıya **0.0-1.0** verir → Flutter `operation_view` busyness sözleşmesiyle hizalı |
+
+Dosyalar yoksa sistem otomatik gömülü **mock** mekan listesine düşer (offline/test).
+`Price Level` enum'u (`PRICE_LEVEL_MODERATE`…) 1-4 seviyeye ve TL tahminine çevrilir;
+**şehir filtresi** zorunludur (veri 7 şehir içerir).
+
+### Gerçek veriye geçişte eklenen iki kalite koruması
+- **Rota kapağı** (`MAX_ROUTE_STOPS`): uzlaşı listesi kabarınca 10 duraklı gerçekdışı rota çıkıyordu → en yüksek konsensüslü N durak.
+- **Puan enflasyonu koruması** ([`conflicts.adjusted_rating`](gastro_agents/conflicts.py)): 3 yorumla 5.0 alan mekan Bayes büzülmesiyle önsel ortalamaya çekilir.
 
 ## Sprint 1 — İskelet · Sprint 2 — AI Beyni (PDF plan → kod)
 
@@ -46,9 +62,10 @@ UserPreferences (tercih ekranı)
         ▼   engine=lite (varsayılan) | engine=crew (CrewAI)
   SupervisorRouter
         ├─▶ Profiler ──(preference_normalizer)──▶ TasteProfile          [deterministik]
-        ├─▶ Gurme RAG ─(venue_retriever)────────▶ aday mekanlar         [deterministik]
+        ├─▶ Gurme RAG ─(venue_retriever)────────▶ aday mekanlar (şehir filtreli) [places.csv]
+        ├─▶ Yoğunluk ──(density_lookup)─────────▶ busyness 0-1 + en sakin saat  [density csv]
         ├─▶ Agent Debate (3 tur) ─ conflicts.py:                         [deterministik = güvenlik rayı]
-        │      DietGuardian(alerjen VETO) · BudgetLogistics(bütçe) · GourmetCritic(lezzet)
+        │      DietGuardian(alerjen VETO) · BudgetLogistics(bütçe + yoğunluk) · GourmetCritic(lezzet)
         ├─▶ Optimizer ─(tsp_route_solver)──────▶ GastroRoute            [deterministik]
         └─▶ 🧠 AI Beyni (Gemini) ──▶ GastroPass rehber metni (ai_summary)  [LLM sentez]
         ▼
@@ -71,12 +88,15 @@ python agents/run_demo.py
 ## Testler
 
 ```bash
-cd agents && python -m pytest -q          # 18 test (Sprint 1 + 2 + LLM sağlayıcı)
+cd agents && python -m pytest -q   # 27 test (Sprint 1+2, LLM sağlayıcı, gerçek veri seti)
 ```
 
 ## Sprint 3'e devir
 
-- **Gerçek RAG:** `tools/venue_retriever_tool.py` → embedding + ChromaDB (Üye 3).
+- **Gerçek RAG:** `tools/venue_retriever_tool.py` şu an CSV üzerinde anahtar-kelime filtresi;
+  embedding + ChromaDB benzerlik aramasına geçecek (Üye 3). `reviews.csv` (7422 yorum) henüz kullanılmıyor.
+- **ML yoğunluk modeli:** `tools/density_tool.py` şu an geçmiş-veri araması; Üye 1'in
+  eğittiği tahmin modeline geçecek (arayüz aynı kalır).
 - **Gerçek TSP:** `tools/tsp_tool.py::_try_member1_tsp` → Üye 1'in `optimization.tsp.solve`.
 - **Menü-düzeyi alerjen taraması:** `conflicts.py::check_allergen` (şu an ad/kategori sezgiseli).
 - **LLM-içi debate:** ajanların Gemini ile gerçek müzakeresi (şu an deterministik).

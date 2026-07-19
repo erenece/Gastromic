@@ -10,12 +10,13 @@ yoksa otomatik mock'a düşülür ve şablon özet kullanılır — offline hiç
 """
 from __future__ import annotations
 
-from .config import DEBATE_ROUNDS, ENGINE
+from .config import DEBATE_ROUNDS, ENGINE, MAX_ROUTE_STOPS
 from .contracts import GastroData, UserPreferences
 from .debate import run_debate
 from .llm import build_llm
 from .prompts import gastropass
 from .stabilize import stabilize
+from .tools.density_tool import enrich_busyness
 from .tools.preference_tool import normalize_preferences
 from .tools.tsp_tool import solve_route
 from .tools.venue_retriever_tool import retrieve_venues
@@ -44,6 +45,14 @@ class SupervisorRouter:
 
         # 2) Gurme RAG Agent — geniş getir; kısıt elemesi debate'te (deterministik)
         raw_candidates = retrieve_venues(profile, prefs.city, limit=10)
+        notes.append(f"Gurme RAG: {prefs.city} için {len(raw_candidates)} aday getirildi.")
+
+        # 2b) Yoğunluk zenginleştirme (Üye 1 popular-times verisi)
+        found = enrich_busyness(raw_candidates, prefs.visit_day, prefs.visit_hour)
+        notes.append(
+            f"Yoğunluk ({prefs.visit_day} {prefs.visit_hour}:00): "
+            f"{found}/{len(raw_candidates)} adayda veri bulundu."
+        )
 
         # 3) Agent Debate — çatışma kurallarıyla müzakere (deterministik güvenlik rayı)
         survivors, debate_log = run_debate(raw_candidates, profile, rounds=self.debate_rounds)
@@ -54,14 +63,18 @@ class SupervisorRouter:
         )
 
         # 4) Optimizer Agent -> TSP (deterministik; Üye 1 modülü / fallback)
-        route = solve_route(survivors)
+        # Rota gerçekçi kalsın: uzlaşı listesinden en yüksek konsensüslü N durak.
+        route_stops = survivors[:MAX_ROUTE_STOPS]
+        route = solve_route(route_stops)
         notes.append(
             f"Optimizer/TSP: {route.solver}, {route.total_distance_km} km, "
-            f"{len(route.ordered_place_ids)} durak."
+            f"{len(route.ordered_place_ids)} durak "
+            f"({len(survivors)} uzlaşı mekandan en iyi {len(route_stops)})."
         )
 
         # 5) AI BEYNİ (Gemini) — GastroPass rehber metni sentezi
-        ai_summary, brain_note = self._synthesize(profile, survivors, route)
+        # Rehber metni rotayla tutarlı olsun: sadece rotadaki duraklar anlatılır
+        ai_summary, brain_note = self._synthesize(profile, route_stops, route, prefs)
         notes.append(brain_note)
 
         # 6) gastro_data'da stabilize et
@@ -82,18 +95,20 @@ class SupervisorRouter:
         )
         return stabilize(data)
 
-    def _synthesize(self, profile, survivors, route) -> tuple[str, str]:
+    def _synthesize(self, profile, survivors, route, prefs) -> tuple[str, str]:
         """AI beyniyle GastroPass metni üret; Gemini yoksa/başarısızsa şablona düş."""
         if self.llm.provider == "gemini":
-            prompt = gastropass.build_prompt(profile, survivors, route)
+            prompt = gastropass.build_prompt(profile, survivors, route, prefs)
             try:
                 text = self.llm.invoke(prompt, system=gastropass.SYSTEM_PROMPT)
                 if text:
                     return text, f"AI beyni: gemini ({self.llm.model}) — GastroPass metni üretildi."
             except Exception as exc:  # ağ/kota hatası -> demo kırılmasın
+                # Sessiz fallback gerçek arızayı gizler: hata mesajını nota taşı.
+                detail = " ".join(str(exc).split())[:140] or type(exc).__name__
                 return (
                     _template_summary(profile, survivors, route),
-                    f"AI beyni: gemini çağrısı başarısız ({type(exc).__name__}) — şablona düşüldü.",
+                    f"AI beyni: gemini çağrısı BAŞARISIZ ({type(exc).__name__}: {detail}) — şablona düşüldü.",
                 )
         note = getattr(self.llm, "note", None)
         return (
