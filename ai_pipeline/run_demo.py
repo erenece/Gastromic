@@ -1,4 +1,4 @@
-"""Kolay giriş noktası: `python agents/run_demo.py` (repo kökünden çalıştırılır)."""
+"""Kolay giriş noktası: `python ai_pipeline/run_demo.py` (repo kökünden çalıştırılır)."""
 from __future__ import annotations
 
 import sys

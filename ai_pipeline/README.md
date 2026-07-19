@@ -1,6 +1,7 @@
-# Gastromic — AI Agent Katmanı (`agents/`)
+# Gastromic — AI Agent Katmanı (`ai_pipeline/`)
 
-**Sorumlu:** Üye 2 — Scrum Master & AI Agent Engineer
+**Geliştiren:** Alp Eray ÇOKER — *AI Agent Engineer (sprint planındaki Üye 2 kapsamı)*
+**Çalışma raporu:** [UYE2_SPRINT_RAPORU.md](UYE2_SPRINT_RAPORU.md)
 
 AI çekirdeği: ajanlar + müzakere + rota + **AI beyni (Gemini)**.
 
@@ -12,7 +13,7 @@ doğal-dil sentezini (GastroPass gurme rehber metni) üretir. Anahtar/SDK yoksa 
 ## AI Beyni (Gemini)
 
 - Varsayılan sağlayıcı: **gemini** (`gemini-2.0-flash-001`), istemci: `google-genai`.
-- Aktive etmek için: `agents/.env` içine `GEMINI_API_KEY=...` (https://aistudio.google.com/apikey).
+- Aktive etmek için: `ai_pipeline/.env` içine `GEMINI_API_KEY=...` (https://aistudio.google.com/apikey).
 - Anahtar yoksa → mock'a düşer, şablon özet üretir (offline çalışır).
 
 | Değişken | Varsayılan | Açıklama |
@@ -77,12 +78,12 @@ UserPreferences (tercih ekranı)
 ```bash
 # Offline (anahtarsız — AI metni şablon olur):
 pip install pydantic
-python agents/run_demo.py
+python ai_pipeline/run_demo.py
 
 # Gemini beyniyle (gerçek GastroPass metni):
-pip install -r agents/requirements.txt          # google-genai dahil
-echo "GEMINI_API_KEY=..." > agents/.env
-python agents/run_demo.py
+pip install -r ai_pipeline/requirements.txt          # google-genai dahil
+echo "GEMINI_API_KEY=..." > ai_pipeline/.env
+python ai_pipeline/run_demo.py
 ```
 
 ## Testler

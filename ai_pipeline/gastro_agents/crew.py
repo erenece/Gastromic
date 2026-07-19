@@ -28,7 +28,7 @@ def _require_crewai():
     except ImportError as exc:  # pragma: no cover - sadece crew modunda
         raise RuntimeError(
             "CrewAI kurulu değil. Gerçek ajan hattı için:\n"
-            "  pip install -r agents/requirements.txt\n"
+            "  pip install -r ai_pipeline/requirements.txt\n"
             "ve bir sağlayıcı anahtarı (GEMINI_API_KEY / OPENAI_API_KEY) ayarlayın.\n"
             "Anahtarsız çalışmak için mock modu kullanın (GASTRO_LLM_MODE=mock)."
         ) from exc
