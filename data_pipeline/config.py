@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY", "")
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN", "")
 
 MAX_ENTERPRISE_CALLS_PER_RUN = 800
 
@@ -20,5 +21,7 @@ CATEGORIES = [
 
 MAX_RESULTS_PER_QUERY = 60
 
-RAW_DIR = "data/raw"
-PROCESSED_DIR = "data/processed"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
+PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
