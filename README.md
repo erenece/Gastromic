@@ -86,7 +86,7 @@ Gastromic, seyahat eden gurme gezginlerin bütçe, konum ve diyet/alerjen kısı
   - Backend/AI (RAG, optimizasyon algoritması) çalışmalarına Sprint 2'de daha erken başlanması ve bu alanda görev dağılımının netleştirilmesi gerektiği vurgulanmıştır.
   - Unit test yazımı için ayrılan efor bu sprintte yetersiz kalmıştır; Sprint 2'de test yazımına daha fazla zaman ayrılması kararlaştırılmıştır.
 
----
+----
 
 # Sprint 2
 
