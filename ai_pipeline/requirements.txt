@@ -1,0 +1,11 @@
+# --- Zorunlu ---
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+
+# --- AI beyni: Gemini (varsayılan sağlayıcı) ---
+# Kurulu değilse veya GEMINI_API_KEY yoksa kod otomatik mock'a düşer.
+google-genai>=1.0.0
+
+# --- Tam CrewAI orkestrasyonu (engine=crew) — opsiyonel ---
+crewai>=0.60.0
+# openai>=1.0.0   # provider=openai (Sprint 3)
