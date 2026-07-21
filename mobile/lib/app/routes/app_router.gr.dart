@@ -425,18 +425,46 @@ class SearchViewRouteArgs {
 
 /// generated route for
 /// [SettingsView]
-class SettingsViewRoute extends PageRouteInfo<void> {
-  const SettingsViewRoute({List<PageRouteInfo>? children})
-    : super(SettingsViewRoute.name, initialChildren: children);
+class SettingsViewRoute extends PageRouteInfo<SettingsViewRouteArgs> {
+  SettingsViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        SettingsViewRoute.name,
+        args: SettingsViewRouteArgs(key: key),
+        initialChildren: children,
+      );
 
   static const String name = 'SettingsViewRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const SettingsView();
+      final args = data.argsAs<SettingsViewRouteArgs>(
+        orElse: () => const SettingsViewRouteArgs(),
+      );
+      return SettingsView(key: args.key);
     },
   );
+}
+
+class SettingsViewRouteArgs {
+  const SettingsViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'SettingsViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SettingsViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
