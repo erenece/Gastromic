@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:gastromic/app/routes/app_router.dart';
+import 'package:gastromic/app/theme/theme_cubit.dart';
 import 'package:gastromic/app/views/view_settings/view_model/settings_view_model.dart';
 import 'package:gastromic/app/views/view_settings/widgets/settings_widgets.dart';
 import 'package:gastromic/core/enums/view_status.dart';
@@ -48,7 +49,13 @@ class SettingsView extends StatelessWidget with SettingsWidgets {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    profileCard(context, profile: profile, onEditTap: () {}),
+                    profileCard(
+                      context,
+                      profile: profile,
+                      onEditTap: () => context.router.push(
+                        EditProfileViewRoute(profile: profile),
+                      ),
+                    ),
                     context.sizedHeightBoxMedium,
                     Text('HESAP AYARLARI', style: context.bodyMedium),
                     context.sizedHeightBoxNormal,
@@ -57,7 +64,7 @@ class SettingsView extends StatelessWidget with SettingsWidgets {
                       icon: Icons.lock_outline,
                       title: 'Şifre Değiştir',
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () {},
+                      onTap: () => context.router.push(ForgotPasswordViewRoute()),
                     ),
                     settingsRow(
                       context,
@@ -76,7 +83,27 @@ class SettingsView extends StatelessWidget with SettingsWidgets {
                       icon: Icons.brightness_6_outlined,
                       title: 'Tema',
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () {},
+                      onTap: () {
+                        final themeCubit = context.read<ThemeCubit>();
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (sheetContext) {
+                            return BlocBuilder<ThemeCubit, ThemeMode>(
+                              bloc: themeCubit,
+                              builder: (context, current) {
+                                return themeSheet(
+                                  context,
+                                  current: current,
+                                  onSelected: (mode) {
+                                    themeCubit.setThemeMode(mode);
+                                    Navigator.pop(sheetContext);
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
                     ),
                     settingsRow(
                       context,
@@ -86,14 +113,20 @@ class SettingsView extends StatelessWidget with SettingsWidgets {
                       onTap: () {},
                     ),
                     context.sizedHeightBoxMedium,
-                    OutlinedButton(
-                      onPressed: () async {
-                        await FirebaseAuth.instance.signOut();
-                        if (context.mounted) {
-                          context.router.replaceAll([LoginViewRoute()]);
-                        }
-                      },
-                      child: const Text('Çıkış Yap'),
+                    Center(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                          if (context.mounted) {
+                            context.router.replaceAll([LoginViewRoute()]);
+                          }
+                        },
+                        child: const Text('Çıkış Yap'),
+                      ),
                     ),
                   ],
                 ),
