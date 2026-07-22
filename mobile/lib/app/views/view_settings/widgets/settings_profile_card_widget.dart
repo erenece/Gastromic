@@ -16,7 +16,18 @@ mixin SettingsProfileCardWidget {
         children: [
           CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(profile.photoUrl),
+            backgroundImage: profile.photoUrl.isNotEmpty
+                ? NetworkImage(profile.photoUrl)
+                : null,
+            child: profile.photoUrl.isEmpty
+                ? Icon(
+                    Icons.person,
+                    size: 40,
+                    color: Theme.of(context).brightness == Brightness.light
+                        ? Colors.white
+                        : null,
+                  )
+                : null,
           ),
           context.sizedHeightBoxNormal,
           Text(profile.name, style: context.titleLarge),

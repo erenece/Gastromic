@@ -11,6 +11,53 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [EditProfileView]
+class EditProfileViewRoute extends PageRouteInfo<EditProfileViewRouteArgs> {
+  EditProfileViewRoute({
+    Key? key,
+    required SettingsProfileModel profile,
+    List<PageRouteInfo>? children,
+  }) : super(
+         EditProfileViewRoute.name,
+         args: EditProfileViewRouteArgs(key: key, profile: profile),
+         initialChildren: children,
+       );
+
+  static const String name = 'EditProfileViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<EditProfileViewRouteArgs>();
+      return EditProfileView(key: args.key, profile: args.profile);
+    },
+  );
+}
+
+class EditProfileViewRouteArgs {
+  const EditProfileViewRouteArgs({this.key, required this.profile});
+
+  final Key? key;
+
+  final SettingsProfileModel profile;
+
+  @override
+  String toString() {
+    return 'EditProfileViewRouteArgs{key: $key, profile: $profile}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EditProfileViewRouteArgs) return false;
+    return key == other.key && profile == other.profile;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ profile.hashCode;
+}
+
+/// generated route for
 /// [ForgotPasswordView]
 class ForgotPasswordViewRoute
     extends PageRouteInfo<ForgotPasswordViewRouteArgs> {
