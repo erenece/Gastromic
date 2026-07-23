@@ -8,6 +8,8 @@ import requests
 import xml.etree.ElementTree as ET
 from pydantic import BaseModel
 from typing import List
+import json
+from pathlib import Path
 
 app = FastAPI(title="GastroLogic API")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -150,3 +152,47 @@ async def optimize_route(data: RouteRequest):
         "total_estimated_time_mins": len(data.place_ids) * 25,
         "note": "TSP rota optimizasyon modülü için hazırlanan iskelet endpoint"
     }
+
+
+@app.post("/load-popular-times-to-rag")
+async def load_popular_times_to_rag():
+    json_path = os.path.join(BASE_DIR, "data", "raw", "popular_times_raw.json")
+    if not os.path.exists(json_path):
+        return {"error": "popular_times_raw.json dosyası bulunamadı. Önce popular_times_scraper.py çalıştırılmalı."}
+    
+    with open(json_path, "r", encoding="utf-8") as f:
+        popular_data = json.load(f)
+    
+    documents = []
+    ids = []
+    metadatas = []
+    
+    for item in popular_data:
+        place_id = item.get("place_id")
+        place_name = item.get("place_name")
+        pop_times = item.get("populartimes", [])
+        
+        time_summaries = []
+        for day_info in pop_times:
+            day_name = day_info.get("name", "")
+            hours = day_info.get("hours", [])
+            busy_hours = [f"Saat {h['hour']}: %{h['percentage']}" for h in hours if h.get('percentage', 0) > 50]
+            if busy_hours:
+                time_summaries.append(f"{day_name} günü yoğun saatler: {', '.join(busy_hours)}")
+        
+        time_text = " | ".join(time_summaries) if time_summaries else "Yoğunluk verisi bulunmuyor."
+        content = f"Mekan Yoğunluk Analizi - Adı: {place_name}. {time_text}"
+        
+        documents.append(content)
+        ids.append(f"pop_{place_id}")
+        metadatas.append({"type": "popular_times", "place_id": str(place_id)})
+    
+    if documents:
+        collection.add(
+            documents=documents,
+            ids=ids,
+            metadatas=metadatas
+        )
+        return {"status": f"{len(documents)} mekânın yoğunluk verisi RAG sistemine eklendi!"}
+    
+    return {"status": "Eklenecek geçerli veri bulunamadı."}
