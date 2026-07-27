@@ -5,10 +5,8 @@ mixin OperationFiltersWidget {
     BuildContext context, {
     required RangeValues priceRange,
     required double busynessThreshold,
-    required bool openNowOnly,
     required ValueChanged<RangeValues> onPriceChanged,
     required ValueChanged<double> onBusynessChanged,
-    required ValueChanged<bool> onOpenNowChanged,
   }) {
     return Container(
       padding: context.paddingNormal,
@@ -98,20 +96,6 @@ mixin OperationFiltersWidget {
             children: [
               Text('Sakin', style: context.bodyMedium),
               Text('Kalabalık', style: context.bodyMedium),
-            ],
-          ),
-
-          context.sizedHeightBoxMedium,
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Şu an açık olanlar', style: context.titleLarge),
-              Switch(
-                value: openNowOnly,
-                activeColor: context.cPrimary,
-                onChanged: onOpenNowChanged,
-              ),
             ],
           ),
         ],

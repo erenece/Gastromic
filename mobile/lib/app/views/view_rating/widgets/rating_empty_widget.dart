@@ -20,7 +20,7 @@ mixin RatingEmptyWidget {
           ),
           context.sizedHeightBoxLow,
           Text(
-            'Mekan detayından "Beni Götür" dediğiniz yerlere ulaştığınızda burada görünür.',
+            'Mekan detayından "Yol Tarifi" alın ve mekana ulaştığınızda burada puan verebilirsiniz.',
             style: context.bodyMedium,
             textAlign: TextAlign.center,
           ),

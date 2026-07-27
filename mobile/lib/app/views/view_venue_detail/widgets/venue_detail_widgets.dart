@@ -4,6 +4,7 @@ import 'package:gastromic/core/extensions/core_extensions.dart';
 import 'package:gastromic/core/models/dish_model.dart';
 import 'package:gastromic/core/models/gastromic_map_marker.dart';
 import 'package:gastromic/core/utils/ai_summary_highlighter.dart';
+import 'package:gastromic/core/utils/opening_hours_display.dart';
 import 'package:gastromic/core/widgets/gastromic_google_map.dart';
 import 'package:gastromic/core/widgets/venue_image.dart';
 

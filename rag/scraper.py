@@ -22,6 +22,7 @@ SEARCH_FIELD_MASK = (
 
 DETAILS_FIELD_MASK = (
     "id,displayName,rating,userRatingCount,priceLevel,"
+    "regularOpeningHours,currentOpeningHours,"
     "reviews.rating,reviews.text,reviews.originalText,"
     "reviews.authorAttribution,reviews.publishTime,"
     "reviews.relativePublishTimeDescription"
@@ -116,6 +117,12 @@ def main():
                     "puan": details.get("rating") if details else None,
                     "yorum_sayisi": details.get("userRatingCount") if details else None,
                     "fiyat_seviyesi": details.get("priceLevel") if details else None,
+                    "regular_opening_hours": (
+                        details.get("regularOpeningHours") if details else None
+                    ),
+                    "current_opening_hours": (
+                        details.get("currentOpeningHours") if details else None
+                    ),
                     "google_yorumlari": [
                         {
                             "yazar": r.get("authorAttribution", {}).get("displayName", ""),

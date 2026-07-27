@@ -3,6 +3,7 @@ part of 'rating_view_model.dart';
 class RatingState {
   final ViewStatus status;
   final List<PendingVisitModel> nearbyVisits;
+  final List<UserReviewHistoryModel> pastReviews;
   final String? selectedVenueId;
   final double starRating;
   final String comment;
@@ -13,6 +14,7 @@ class RatingState {
   const RatingState({
     this.status = ViewStatus.initial,
     this.nearbyVisits = const [],
+    this.pastReviews = const [],
     this.selectedVenueId,
     this.starRating = 0,
     this.comment = '',
@@ -26,6 +28,7 @@ class RatingState {
   RatingState copyWith({
     ViewStatus? status,
     List<PendingVisitModel>? nearbyVisits,
+    List<UserReviewHistoryModel>? pastReviews,
     String? selectedVenueId,
     bool clearSelection = false,
     double? starRating,
@@ -37,6 +40,7 @@ class RatingState {
     return RatingState(
       status: status ?? this.status,
       nearbyVisits: nearbyVisits ?? this.nearbyVisits,
+      pastReviews: pastReviews ?? this.pastReviews,
       selectedVenueId: clearSelection
           ? null
           : (selectedVenueId ?? this.selectedVenueId),

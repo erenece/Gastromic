@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 
 import 'package:gastromic/app/views/view_venue_detail/repository/model/venue_detail_model.dart';
 import 'package:gastromic/core/services/location_service.dart';
+import 'package:gastromic/core/services/opening_hours_service.dart';
 import 'package:gastromic/core/services/recommendation_service.dart';
 import 'package:gastromic/core/services/user_preferences_service.dart';
 import 'package:gastromic/core/utils/review_date_formatter.dart';
@@ -10,6 +11,7 @@ import 'package:gastromic/core/utils/review_date_formatter.dart';
 class VenueDetailService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final RecommendationService _recommendationService = RecommendationService();
+  final OpeningHoursService _openingHoursService = OpeningHoursService();
   final UserPreferencesService _preferencesService = UserPreferencesService();
 
   Future<VenueDetailModel> fetchVenueDetail(String venueId) async {
@@ -82,6 +84,26 @@ class VenueDetailService {
         .take(4)
         .toList();
 
+    var workingHours = data['workingHours'] as String? ?? '';
+    var isOpenNow = data['isOpenNow'] as bool?;
+    var openingHoursWeek = _stringList(data['openingHoursWeek']);
+
+    if (OpeningHoursService.needsRefresh(
+      workingHours: workingHours,
+      openingHoursWeek: openingHoursWeek,
+    )) {
+      final fresh = await _openingHoursService.fetchOpeningHours(venueId);
+      if (fresh != null) {
+        workingHours = fresh.workingHours;
+        isOpenNow = fresh.isOpenNow;
+        openingHoursWeek = fresh.openingHoursWeek;
+      }
+    }
+
+    if (workingHours.trim().isEmpty) {
+      workingHours = 'Bilgi mevcut değil';
+    }
+
     return VenueDetailModel(
       id: venueId,
       name: data['name'] ?? '',
@@ -102,7 +124,9 @@ class VenueDetailService {
       reviews: reviews,
       address: data['address'] ?? '',
       phone: data['phone'] ?? '',
-      workingHours: data['workingHours'] ?? '10:00 - 23:00',
+      workingHours: workingHours,
+      isOpenNow: isOpenNow,
+      openingHoursWeek: openingHoursWeek,
       latitude: _readLatitude(data),
       longitude: _readLongitude(data),
       priceLevel: ((data['priceLevel'] ?? 2) as num).toInt(),
@@ -130,6 +154,11 @@ class VenueDetailService {
     final value = data['longitude'];
     if (value is GeoPoint) return value.longitude;
     return _readCoordinate(value);
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is! List) return const [];
+    return value.map((e) => e.toString()).where((e) => e.isNotEmpty).toList();
   }
 
   Future<String> _distanceLabel(double lat, double lng) async {
