@@ -4,10 +4,7 @@
 **/.idea/
 **/.flutter-plugins-dependencies
 **/*.iml
-firebase.json
 .firebaserc
-firebase/
-rag/
 
 # Build & tooling (tüm alt projeler)
 backend/__pycache__/

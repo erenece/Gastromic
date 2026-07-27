@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /pendingVisits/{visitId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /favorites/{venueId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /reviewHistory/{venueId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    match /venues/{venueId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+
+      match /reviews/{reviewId} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && request.auth.uid == reviewId;
+        allow delete: if request.auth != null && request.auth.uid == reviewId;
+      }
+    }
+  }
+}

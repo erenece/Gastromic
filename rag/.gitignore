@@ -1,0 +1,4 @@
+# Veri setleri zaten data_pipeline/data/ altında (kaynak: orası).
+# rag/data/ yinelenmesin diye burada tutulmuyor.
+data/
+chroma_db/
