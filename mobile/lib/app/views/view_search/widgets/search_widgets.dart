@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gastromic/core/extensions/core_extensions.dart';
 import 'package:gastromic/core/models/venue_model.dart';
+import 'package:gastromic/core/widgets/venue_image.dart';
 
 part 'search_bar_widget.dart';
 part 'search_recent_widget.dart';

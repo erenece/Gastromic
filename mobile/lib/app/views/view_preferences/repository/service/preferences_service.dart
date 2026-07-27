@@ -1,20 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gastromic/app/views/view_preferences/repository/model/preferences_model.dart';
+import 'package:gastromic/core/services/user_preferences_service.dart';
 
 class PreferencesService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  PreferencesService({UserPreferencesService? preferencesService})
+      : _preferencesService = preferencesService ?? UserPreferencesService();
 
-  Future<void> savePreferences(PreferencesModel preferences) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) {
-      throw Exception('Oturum bulunamadı');
-    }
+  final UserPreferencesService _preferencesService;
 
-    await _firestore
-        .collection('users')
-        .doc(uid)
-        .set(preferences.toMap(), SetOptions(merge: true));
+  Future<void> savePreferences(PreferencesModel preferences) {
+    return _preferencesService.savePreferences(preferences);
   }
 }

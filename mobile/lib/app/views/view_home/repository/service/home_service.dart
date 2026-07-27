@@ -1,10 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:gastromic/core/models/venue_model.dart';
 
 class HomeService {
+  HomeService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
   final Geocoding _geocoding = Geocoding();
+
+  Future<({double lat, double lng})?> fetchCurrentPosition() async {
+    try {
+      final permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+      final position = await Geolocator.getCurrentPosition();
+      return (lat: position.latitude, lng: position.longitude);
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<String> fetchLocationName() async {
     final permission = await Geolocator.requestPermission();
@@ -31,63 +50,79 @@ class HomeService {
     return '$district, $city';
   }
 
+  Future<String> _resolveCity() async {
+    try {
+      final permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return 'İstanbul';
+      }
+      final position = await Geolocator.getCurrentPosition();
+      final placemarks = await _geocoding.placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isEmpty) return 'İstanbul';
+      return placemarks.first.administrativeArea ?? 'İstanbul';
+    } catch (_) {
+      return 'İstanbul';
+    }
+  }
+
+  Future<List<VenueModel>> _fetchVenuesForCity(String city, {required int limit}) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot;
+    try {
+      snapshot = await _firestore
+          .collection('venues')
+          .where('city', isEqualTo: city)
+          .orderBy('rating', descending: true)
+          .limit(limit)
+          .get();
+    } catch (_) {
+      snapshot = await _firestore
+          .collection('venues')
+          .orderBy('rating', descending: true)
+          .limit(limit)
+          .get();
+    }
+
+    if (snapshot.docs.isEmpty && city != 'İstanbul') {
+      try {
+        snapshot = await _firestore
+            .collection('venues')
+            .where('city', isEqualTo: 'İstanbul')
+            .orderBy('rating', descending: true)
+            .limit(limit)
+            .get();
+      } catch (_) {
+        snapshot = await _firestore
+            .collection('venues')
+            .orderBy('rating', descending: true)
+            .limit(limit)
+            .get();
+      }
+    }
+
+    return snapshot.docs
+        .map((doc) => VenueModel.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
   Future<List<VenueModel>> fetchNearbyVenues() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return const [
-      VenueModel(
-        id: 'v1',
-        name: 'Lara Balıkevi',
-        rating: 4.8,
-        imageUrl: '',
-        category: 'Akdeniz',
-        subCategory: 'Deniz Ürünleri',
-      ),
-      VenueModel(
-        id: 'v2',
-        name: 'Seraser Fine Dining',
-        rating: 4.9,
-        imageUrl: '',
-        category: 'Fine Dining',
-        subCategory: 'Akdeniz',
-      ),
-      VenueModel(
-        id: 'v3',
-        name: '7 Mehmet',
-        rating: 4.7,
-        imageUrl: '',
-        category: 'Türk Mutfağı',
-        subCategory: 'Kebap',
-      ),
-    ];
+    final city = await _resolveCity();
+    final venues = await _fetchVenuesForCity(city, limit: 10);
+    return venues;
   }
 
   Future<List<VenueModel>> fetchFavoriteVenues() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return const [
-      VenueModel(
-        id: 'f1',
-        name: 'Il Vicino Pizzeria',
-        rating: 4.6,
-        imageUrl: '',
-        category: 'İtalyan',
-        subCategory: 'Pizza',
-      ),
-      VenueModel(
-        id: 'f2',
-        name: 'The Bar',
-        rating: 4.5,
-        imageUrl: '',
-        category: 'Kokteyl Bar',
-        subCategory: 'Lounge',
-      ),
-      VenueModel(
-        id: 'f3',
-        name: 'Grizzly Coffee',
-        rating: 4.7,
-        imageUrl: '',
-        category: 'Kahve',
-        subCategory: 'Tatlı',
-      ),
-    ];
+    final snapshot = await _firestore
+        .collection('venues')
+        .orderBy('rating', descending: true)
+        .limit(6)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => VenueModel.fromMap(doc.id, doc.data()))
+        .toList();
   }
 }

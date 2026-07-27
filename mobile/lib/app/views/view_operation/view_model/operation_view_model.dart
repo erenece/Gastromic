@@ -28,6 +28,7 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
   ) async {
     emit(state.copyWith(status: ViewStatus.loading));
     try {
+      final prefs = await _service.loadUserPreferences();
       final venues = await _service.fetchVenues();
 
       double lat = 0, lng = 0;
@@ -37,11 +38,16 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
         lng = pos.longitude;
       } catch (_) {}
 
+      final budgetMax = prefs.budget * 1.5;
+      final next = state.copyWith(
+        priceRange: RangeValues(0, budgetMax.clamp(50, 3000)),
+      );
+
       emit(
-        state.copyWith(
+        next.copyWith(
           status: ViewStatus.success,
           allVenues: venues,
-          filteredVenues: _applyFilters(venues, state),
+          filteredVenues: _applyFilters(venues, next),
           userLat: lat,
           userLng: lng,
         ),

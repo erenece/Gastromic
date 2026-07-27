@@ -35,6 +35,9 @@ class HomeView extends StatelessWidget with HomeWidgets {
                             onExplore: () {
                               context.router.push(OperationViewRoute());
                             },
+                            userLat: state.userLat,
+                            userLng: state.userLng,
+                            venues: state.nearbyVenues,
                           ),
                           context.sizedHeightBoxMedium,
                           nearbySection(

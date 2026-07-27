@@ -5,22 +5,42 @@ mixin VenueDetailLocationWidget {
     BuildContext context, {
     required VenueDetailModel venue,
   }) {
+    final hasCoords = venue.latitude != 0 || venue.longitude != 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          height: context.dynamicHeight(0.18),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: context.cPrimary.withValues(alpha: 0.08),
-            borderRadius: context.normalBorderRadius,
-          ),
-          child: Center(
-            child: Icon(
-              Icons.map_outlined,
-              size: 40,
-              color: context.cPrimary.withValues(alpha: 0.4),
-            ),
+        ClipRRect(
+          borderRadius: context.normalBorderRadius,
+          child: SizedBox(
+            height: context.dynamicHeight(0.18),
+            width: double.infinity,
+            child: hasCoords
+                ? GastromicGoogleMap(
+                    latitude: venue.latitude,
+                    longitude: venue.longitude,
+                    zoom: 15,
+                    markers: [
+                      GastromicMapMarker(
+                        id: venue.id,
+                        latitude: venue.latitude,
+                        longitude: venue.longitude,
+                        title: venue.name,
+                      ),
+                    ],
+                    interactive: false,
+                    showMyLocation: false,
+                  )
+                : Container(
+                    color: context.cPrimary.withValues(alpha: 0.08),
+                    child: Center(
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 40,
+                        color: context.cPrimary.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
           ),
         ),
         context.sizedHeightBoxNormal,

@@ -1,7 +1,22 @@
-import 'package:gastromic/core/models/map_venue_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:gastromic/core/models/map_venue_model.dart';
+import 'package:gastromic/core/models/user_preferences_snapshot.dart';
+import 'package:gastromic/core/services/user_preferences_service.dart';
+
 class OperationService {
+  OperationService({
+    FirebaseFirestore? firestore,
+    UserPreferencesService? preferencesService,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _preferencesService = preferencesService ?? UserPreferencesService();
+
+  final FirebaseFirestore _firestore;
+  final Geocoding _geocoding = Geocoding();
+  final UserPreferencesService _preferencesService;
+
   Future<Position> currentPosition() async {
     final permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied ||
@@ -11,61 +26,39 @@ class OperationService {
     return Geolocator.getCurrentPosition();
   }
 
+  Future<String> _resolveCity() async {
+    try {
+      final pos = await currentPosition();
+      final placemarks = await _geocoding.placemarkFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
+      if (placemarks.isEmpty) return 'İstanbul';
+      return placemarks.first.administrativeArea ?? 'İstanbul';
+    } catch (_) {
+      return 'İstanbul';
+    }
+  }
+
+  Future<UserPreferencesSnapshot> loadUserPreferences() {
+    return _preferencesService.loadPreferences();
+  }
+
   Future<List<MapVenueModel>> fetchVenues() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return const [
-      MapVenueModel(
-        id: 'v1',
-        name: 'Seraser Fine Dining',
-        imageUrl: '',
-        rating: 4.9,
-        category: 'Akdeniz',
-        district: 'Kaleiçi',
-        latitude: 36.8841,
-        longitude: 30.7056,
-        price: 1200,
-        busyness: 0.7,
-        isOpenNow: true,
-      ),
-      MapVenueModel(
-        id: 'v2',
-        name: '7 Mehmet',
-        imageUrl: '',
-        rating: 4.7,
-        category: 'Türk Mutfağı',
-        district: 'Konyaaltı',
-        latitude: 36.8721,
-        longitude: 30.6339,
-        price: 800,
-        busyness: 0.5,
-        isOpenNow: true,
-      ),
-      MapVenueModel(
-        id: 'v3',
-        name: 'Lara Balıkevi',
-        imageUrl: '',
-        rating: 4.8,
-        category: 'Deniz Ürünleri',
-        district: 'Lara',
-        latitude: 36.8523,
-        longitude: 30.7889,
-        price: 1500,
-        busyness: 0.3,
-        isOpenNow: false,
-      ),
-      MapVenueModel(
-        id: 'v4',
-        name: 'Il Vicino Pizzeria',
-        imageUrl: '',
-        rating: 4.6,
-        category: 'İtalyan',
-        district: 'Muratpaşa',
-        latitude: 36.8869,
-        longitude: 30.7133,
-        price: 400,
-        busyness: 0.9,
-        isOpenNow: true,
-      ),
-    ];
+    final city = await _resolveCity();
+
+    var snapshot = await _firestore
+        .collection('venues')
+        .where('city', isEqualTo: city)
+        .limit(500)
+        .get();
+
+    if (snapshot.docs.isEmpty) {
+      snapshot = await _firestore.collection('venues').limit(500).get();
+    }
+
+    return snapshot.docs
+        .map((doc) => MapVenueModel.fromMap(doc.id, doc.data()))
+        .toList();
   }
 }
