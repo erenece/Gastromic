@@ -32,8 +32,6 @@ class VenueFilterData {
 class VenuePreferenceFilter {
   VenuePreferenceFilter._();
 
-  static const _budgetVetoFactor = 1.5;
-
   static const _sensitivityMap = {
     'laktoz intoleransı': ['süt', 'peynir', 'tereyağı', 'krema'],
     'çölyak': ['buğday', 'gluten', 'arpa', 'çavdar'],
@@ -45,10 +43,70 @@ class VenuePreferenceFilter {
   };
 
   static const _modeCategories = {
-    'sporcu': ['protein bowl', 'ızgara', 'salata', 'sağlıklı'],
-    'vejetaryen': ['vejetaryen', 'vegan', 'meze', 'sebze'],
-    'organik': ['organik', 'çiftlik', 'farm-to-table', 'kahvaltı'],
-    'kacamak': ['burger', 'tatlı', 'pizza', 'sokak lezzeti'],
+    'sporcu': [
+      'protein',
+      'ızgara',
+      'grill',
+      'salata',
+      'sağlıklı',
+      'healthy',
+      'fit',
+      'bowl',
+    ],
+    'vejetaryen': [
+      'vejetaryen',
+      'vegan',
+      'meze',
+      'sebze',
+      'vegetarian',
+      'vegan_restaurant',
+      'vegetarian_restaurant',
+    ],
+    'organik': [
+      'organik',
+      'organic',
+      'çiftlik',
+      'farm',
+      'farm-to-table',
+      'kahvaltı',
+      'breakfast',
+    ],
+    'kacamak': [
+      'burger',
+      'tatlı',
+      'dessert',
+      'pizza',
+      'sokak',
+      'fast_food',
+      'hamburger',
+      'ice cream',
+      'dondurma',
+      'street',
+    ],
+  };
+
+  static const _modeExclude = {
+    'kacamak': [
+      'vegan_restaurant',
+      'vegetarian_restaurant',
+      'salata bar',
+      'juice',
+      'health_food',
+      'smoothie',
+    ],
+    'vejetaryen': [
+      'steakhouse',
+      'fast_food_restaurant',
+    ],
+    'sporcu': [
+      'ice_cream_shop',
+      'patisserie',
+    ],
+    'organik': [
+      'mcdonald',
+      'burger king',
+      'kfc',
+    ],
   };
 
   static const _allergenKeywords = {
@@ -63,17 +121,8 @@ class VenuePreferenceFilter {
     'kuruyemiş': ['kuruyemiş', 'nut', 'badem', 'ceviz'],
   };
 
-  static const _alcoholTypes = {
-    'bar',
-    'cocktail_bar',
-    'wine_bar',
-    'pub',
-    'night_club',
-    'brewery',
-  };
-
-  static const _smokingKeywords = ['sigara', 'smoking', 'nargile', 'hookah', 'shisha'];
-
+  /// Liste görünümü: mekan elemez; günlük moda göre çok hafif sıralama yapar.
+  /// Alerjen, bütçe, sigara/alkol tercihleri yalnızca AI özetinde uyarı olarak kullanılır.
   static List<T> apply<T>(
     List<T> venues,
     UserPreferencesSnapshot prefs,
@@ -81,17 +130,26 @@ class VenuePreferenceFilter {
   ) {
     if (!prefs.hasPreferences) return venues;
 
-    final avoid = _buildAvoidList(prefs);
-    final modeKeywords = _modeCategories[prefs.dailyModeSlug] ?? const [];
+    final modeSlug = prefs.dailyModeSlug;
+    if (modeSlug.isEmpty) return venues;
 
-    return venues.where((venue) {
-      final data = toFilterData(venue);
-      if (_hasAllergenRisk(data, avoid)) return false;
-      if (_isOverBudget(data, prefs.budget)) return false;
-      if (!_matchesMode(data, modeKeywords)) return false;
-      if (!_matchesAmenities(data, prefs)) return false;
-      return true;
-    }).toList();
+    final sorted = List<T>.from(venues);
+    sorted.sort((a, b) {
+      final scoreA = _softModeScore(toFilterData(a), modeSlug);
+      final scoreB = _softModeScore(toFilterData(b), modeSlug);
+      return scoreB.compareTo(scoreA);
+    });
+    return sorted;
+  }
+
+  /// AI özeti için alerjen uyarı metni; liste filtrelemesinde kullanılmaz.
+  static String? allergenWarning(
+    VenueFilterData data,
+    UserPreferencesSnapshot prefs,
+  ) {
+    final hit = _detectAllergen(data, _buildAvoidList(prefs));
+    if (hit == null) return null;
+    return 'Bu mekanda alerjen listenizde olan ürünler ($hit) olabilir — dikkatli olun.';
   }
 
   static List<String> _buildAvoidList(UserPreferencesSnapshot prefs) {
@@ -103,8 +161,8 @@ class VenuePreferenceFilter {
     return avoid.toSet().toList();
   }
 
-  static bool _hasAllergenRisk(VenueFilterData data, List<String> avoid) {
-    if (avoid.isEmpty) return false;
+  static String? _detectAllergen(VenueFilterData data, List<String> avoid) {
+    if (avoid.isEmpty) return null;
     final text = data.haystack;
     final isVeganSafe = text.contains('vegan');
 
@@ -114,48 +172,20 @@ class VenuePreferenceFilter {
         continue;
       }
       final keywords = _allergenKeywords[ingredient] ?? [ingredient];
-      if (keywords.any(text.contains)) return true;
+      if (keywords.any(text.contains)) return ingredient;
     }
-    return false;
+    return null;
   }
 
-  static bool _isOverBudget(VenueFilterData data, double budget) {
-    final cost = data.price > 0 ? data.price : _estimateCost(data.priceLevel);
-    return cost > budget * _budgetVetoFactor;
-  }
-
-  static int _estimateCost(int priceLevel) {
-    const map = {1: 150, 2: 400, 3: 900, 4: 1800};
-    return map[priceLevel] ?? 400;
-  }
-
-  static bool _matchesMode(VenueFilterData data, List<String> modeKeywords) {
-    if (modeKeywords.isEmpty) return true;
+  static int _softModeScore(VenueFilterData data, String modeSlug) {
+    final excludes = _modeExclude[modeSlug] ?? const [];
     final text = data.haystack;
 
-    if (modeKeywords.any((k) => k.contains('vegan') || k.contains('vejetaryen'))) {
-      const meatHints = ['kebap', 'ocakbaşı', 'steak', 'bbq', 'burger', ' döner'];
-      if (meatHints.any(text.contains)) return false;
-    }
-    return true;
-  }
+    if (excludes.any((k) => text.contains(k.toLowerCase()))) return 0;
 
-  static bool _matchesAmenities(VenueFilterData data, UserPreferencesSnapshot prefs) {
-    final typeTokens = data.types
-        .split(',')
-        .map((t) => t.trim().toLowerCase())
-        .where((t) => t.isNotEmpty)
-        .toSet();
-    final text = data.haystack;
+    final modeKeywords = _modeCategories[modeSlug] ?? const [];
+    if (modeKeywords.any((k) => text.contains(k.toLowerCase()))) return 2;
 
-    final hasAlcohol = typeTokens.intersection(_alcoholTypes).isNotEmpty ||
-        text.contains('bar') ||
-        text.contains('pub');
-    final hasSmoking = typeTokens.contains('hookah_bar') ||
-        _smokingKeywords.any(text.contains);
-
-    if (prefs.smokingArea && !hasSmoking) return false;
-    if (prefs.alcoholService && !hasAlcohol) return false;
-    return true;
+    return 1;
   }
 }

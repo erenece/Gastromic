@@ -1,18 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
+import 'package:gastromic/core/models/user_preferences_snapshot.dart';
 import 'package:gastromic/core/models/venue_model.dart';
+import 'package:gastromic/core/services/user_preferences_service.dart';
 
 class SearchService {
-  SearchService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  SearchService({
+    FirebaseFirestore? firestore,
+    UserPreferencesService? preferencesService,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _preferencesService = preferencesService ?? UserPreferencesService();
 
   final FirebaseFirestore _firestore;
+  final UserPreferencesService _preferencesService;
   final Box _settingsBox = Hive.box('settings');
 
   static const String _recentKey = 'recent_searches';
 
-  Future<List<VenueModel>> searchVenues(String query) async {
+  Future<UserPreferencesSnapshot> loadPreferences() {
+    return _preferencesService.loadPreferences();
+  }
+
+  Future<List<VenueModel>> searchVenues(
+    String query, {
+    UserPreferencesSnapshot? prefs,
+  }) async {
     final snapshot = await _firestore
         .collection('venues')
         .where('name', isGreaterThanOrEqualTo: query)
@@ -25,16 +38,20 @@ class SearchService {
         .toList();
   }
 
-  Future<List<VenueModel>> fetchFrequentVenues() async {
+  Future<List<VenueModel>> fetchFrequentVenues({
+    UserPreferencesSnapshot? prefs,
+  }) async {
     final snapshot = await _firestore
         .collection('venues')
         .orderBy('rating', descending: true)
-        .limit(4)
+        .limit(20)
         .get();
 
-    return snapshot.docs
+    final venues = snapshot.docs
         .map((doc) => VenueModel.fromMap(doc.id, doc.data()))
         .toList();
+
+    return venues.take(4).toList();
   }
 
   List<String> getRecentSearches() {

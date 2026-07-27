@@ -27,7 +27,7 @@ class RatingViewModel extends Bloc<RatingEvent, RatingState> {
     RatingInitialEvent event,
     Emitter<RatingState> emit,
   ) async {
-    emit(state.copyWith(status: ViewStatus.loading));
+    emit(state.copyWith(status: ViewStatus.loading, isSubmitted: false));
 
     try {
       final visits = await _ratingService.fetchPendingVisits();
@@ -35,11 +35,24 @@ class RatingViewModel extends Bloc<RatingEvent, RatingState> {
         emit(state.copyWith(status: ViewStatus.success, nearbyVisits: []));
         return;
       }
+
+      // Bekleyen ziyaretleri hemen göster; GPS yavaşsa kullanıcı beklemez.
+      emit(
+        state.copyWith(
+          status: ViewStatus.success,
+          nearbyVisits: visits,
+        ),
+      );
+
       final position = await _ratingService.currentPosition();
+      if (position == null) return;
+
       final nearby = visits
           .where((visit) => _ratingService.isNearby(position, visit))
           .toList();
-      emit(state.copyWith(status: ViewStatus.success, nearbyVisits: nearby));
+      if (nearby.isNotEmpty) {
+        emit(state.copyWith(nearbyVisits: nearby));
+      }
     } catch (e) {
       emit(
         state.copyWith(status: ViewStatus.failure, errorMessage: e.toString()),
@@ -57,6 +70,7 @@ class RatingViewModel extends Bloc<RatingEvent, RatingState> {
         selectedVenueId: event.venueId,
         starRating: 0,
         comment: '',
+        isSubmitted: false,
       ),
     );
   }
@@ -88,9 +102,9 @@ class RatingViewModel extends Bloc<RatingEvent, RatingState> {
     Emitter<RatingState> emit,
   ) async {
     final venueId = state.selectedVenueId;
-    if (venueId == null || !state.canSubmit) return;
+    if (venueId == null || !state.canSubmit || state.isSubmitting) return;
 
-    emit(state.copyWith(status: ViewStatus.loading));
+    emit(state.copyWith(isSubmitting: true));
     try {
       await _ratingService.submitReview(
         venueId: venueId,
@@ -108,12 +122,16 @@ class RatingViewModel extends Bloc<RatingEvent, RatingState> {
           clearSelection: true,
           starRating: 0,
           comment: '',
+          isSubmitting: false,
           isSubmitted: true,
         ),
       );
     } catch (e) {
       emit(
-        state.copyWith(status: ViewStatus.failure, errorMessage: e.toString()),
+        state.copyWith(
+          isSubmitting: false,
+          errorMessage: e.toString(),
+        ),
       );
     }
   }

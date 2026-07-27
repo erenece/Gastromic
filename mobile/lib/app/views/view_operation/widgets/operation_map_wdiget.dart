@@ -1,6 +1,8 @@
 part of 'operation_widgets.dart';
 
 mixin OperationMapWidget {
+  static const _mapMarkerLimit = 80;
+
   static Widget mapArea(
     BuildContext context, {
     required List<MapVenueModel> venues,
@@ -11,6 +13,7 @@ mixin OperationMapWidget {
   }) {
     final markers = venues
         .where((v) => v.latitude != 0 || v.longitude != 0)
+        .take(_mapMarkerLimit)
         .map(
           (v) => GastromicMapMarker(
             id: v.id,

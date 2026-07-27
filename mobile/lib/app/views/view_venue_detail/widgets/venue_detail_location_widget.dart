@@ -30,6 +30,7 @@ mixin VenueDetailLocationWidget {
                     ],
                     interactive: false,
                     showMyLocation: false,
+                    liteMode: true,
                   )
                 : Container(
                     color: context.cPrimary.withValues(alpha: 0.08),

@@ -3,10 +3,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:gastromic/app/views/view_rating/repository/model/pending_visit_model.dart';
+import 'package:gastromic/core/services/location_service.dart';
 
 class RatingService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  RatingService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    LocationService? locationService,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _auth = auth ?? FirebaseAuth.instance,
+        _location = locationService ?? LocationService.instance;
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+  final LocationService _location;
 
   static const double matchRadiusMeters = 100;
 
@@ -28,13 +38,8 @@ class RatingService {
         .toList();
   }
 
-  Future<Position> currentPosition() async {
-    final permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      throw Exception('Konum izni verilmedi');
-    }
-    return Geolocator.getCurrentPosition();
+  Future<Position?> currentPosition() {
+    return _location.getCurrentPosition();
   }
 
   bool isNearby(Position position, PendingVisitModel visit) {
