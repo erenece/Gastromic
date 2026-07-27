@@ -11,6 +11,53 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [EditProfileView]
+class EditProfileViewRoute extends PageRouteInfo<EditProfileViewRouteArgs> {
+  EditProfileViewRoute({
+    Key? key,
+    required SettingsProfileModel profile,
+    List<PageRouteInfo>? children,
+  }) : super(
+         EditProfileViewRoute.name,
+         args: EditProfileViewRouteArgs(key: key, profile: profile),
+         initialChildren: children,
+       );
+
+  static const String name = 'EditProfileViewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<EditProfileViewRouteArgs>();
+      return EditProfileView(key: args.key, profile: args.profile);
+    },
+  );
+}
+
+class EditProfileViewRouteArgs {
+  const EditProfileViewRouteArgs({this.key, required this.profile});
+
+  final Key? key;
+
+  final SettingsProfileModel profile;
+
+  @override
+  String toString() {
+    return 'EditProfileViewRouteArgs{key: $key, profile: $profile}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EditProfileViewRouteArgs) return false;
+    return key == other.key && profile == other.profile;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ profile.hashCode;
+}
+
+/// generated route for
 /// [ForgotPasswordView]
 class ForgotPasswordViewRoute
     extends PageRouteInfo<ForgotPasswordViewRouteArgs> {
@@ -425,18 +472,46 @@ class SearchViewRouteArgs {
 
 /// generated route for
 /// [SettingsView]
-class SettingsViewRoute extends PageRouteInfo<void> {
-  const SettingsViewRoute({List<PageRouteInfo>? children})
-    : super(SettingsViewRoute.name, initialChildren: children);
+class SettingsViewRoute extends PageRouteInfo<SettingsViewRouteArgs> {
+  SettingsViewRoute({Key? key, List<PageRouteInfo>? children})
+    : super(
+        SettingsViewRoute.name,
+        args: SettingsViewRouteArgs(key: key),
+        initialChildren: children,
+      );
 
   static const String name = 'SettingsViewRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const SettingsView();
+      final args = data.argsAs<SettingsViewRouteArgs>(
+        orElse: () => const SettingsViewRouteArgs(),
+      );
+      return SettingsView(key: args.key);
     },
   );
+}
+
+class SettingsViewRouteArgs {
+  const SettingsViewRouteArgs({this.key});
+
+  final Key? key;
+
+  @override
+  String toString() {
+    return 'SettingsViewRouteArgs{key: $key}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SettingsViewRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
