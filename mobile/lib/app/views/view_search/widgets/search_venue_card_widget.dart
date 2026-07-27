@@ -13,10 +13,12 @@ mixin SearchVenueCardWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Görsel (boşsa placeholder)
-            venue.imageUrl.isNotEmpty
-                ? Image.network(venue.imageUrl, fit: BoxFit.cover)
-                : Container(color: context.cPrimary.withValues(alpha: 0.1)),
+            VenueImage(
+              imageUrl: venue.imageUrl,
+              category: venue.category,
+              types: venue.types,
+              fit: BoxFit.cover,
+            ),
             // Alt karartma + metin
             Positioned(
               left: 0,

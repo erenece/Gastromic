@@ -17,8 +17,9 @@ from __future__ import annotations
 import csv
 
 from .. import config
+from ..amenities import infer_amenities
 from ..conflicts import estimate_cost
-from ..contracts import GeoPoint, TasteProfile, VenueCandidate
+from ..contracts import DailyMode, GeoPoint, TasteProfile, VenueCandidate
 
 # Google Places fiyat enum'u -> 1..4 seviye
 _PRICE_ENUM = {
@@ -130,9 +131,111 @@ def _tourist_trap_score(rating, review_count) -> float:
     return round(min(score, 1.0), 2)
 
 
+def _row_to_candidate(row: dict, profile: TasteProfile, *, match_prefix: str) -> VenueCandidate:
+    category = row["category"]
+    searchable = f"{category} {row['types']}"
+    trap = _tourist_trap_score(row["rating"], row["review_count"])
+    lat, lng = _to_float(row["lat"]), _to_float(row["lng"])
+    matched = _category_match(profile, searchable)
+    alcohol, smoking = infer_amenities(row["types"], category, row["name"])
+    return VenueCandidate(
+        place_id=str(row["place_id"] or row["name"]),
+        name=row["name"],
+        category=category,
+        types=row["types"],
+        rating=_to_float(row["rating"]),
+        review_count=_to_int(row["review_count"]),
+        price_level=row["price_level"],
+        location=GeoPoint(lat=lat, lng=lng) if lat is not None and lng is not None else None,
+        tourist_trap_score=trap,
+        estimated_cost_per_person=estimate_cost(row["price_level"]),
+        alcohol_served=alcohol,
+        smoking_area=smoking,
+        match_reason=(
+            f"{match_prefix}{profile.mode.value} mod · tuzak skoru {trap}"
+            if matched
+            else f"{match_prefix}otantik alternatif · tuzak skoru {trap}"
+        ),
+    )
+
+
+def get_venue_by_id(place_id: str) -> VenueCandidate | None:
+    """Tek mekanı CSV/mock kaynaktan getirir."""
+    rows = _load_rows()
+    if rows is None:
+        rows = [_normalize(r) for r in _MOCK_VENUES]
+    wanted = str(place_id).strip()
+    for row in rows:
+        if str(row.get("place_id") or "").strip() == wanted:
+            profile = TasteProfile(
+                budget_band="orta",
+                budget_per_person=500,
+                mode=DailyMode.ORGANIK,
+            )
+            return _row_to_candidate(row, profile, match_prefix="")
+    return None
+
+
 def _category_match(profile: TasteProfile, haystack: str) -> bool:
     text = (haystack or "").lower()
     return any(pc.split()[0].lower() in text for pc in profile.preferred_categories)
+
+
+def _retrieve_from_chroma(profile: TasteProfile, city: str, limit: int) -> list[VenueCandidate] | None:
+    """ChromaDB semantik arama — başarısız olursa None (CSV fallback)."""
+    try:
+        from backend.database import collection
+    except Exception:
+        return None
+
+    query = f"{profile.mode.value} {city} {' '.join(profile.preferred_categories[:3])}".strip()
+    try:
+        results = collection.query(query_texts=[query], n_results=max(limit * 3, 15))
+    except Exception:
+        return None
+
+    ids = (results.get("ids") or [[]])[0]
+    if not ids:
+        return None
+
+    rows_by_id = {str(r["place_id"]): r for r in (_load_rows() or []) if r.get("place_id")}
+    wanted_city = _fold(city)
+    candidates: list[VenueCandidate] = []
+    for place_id in ids:
+        row = rows_by_id.get(str(place_id))
+        if not row:
+            continue
+        if wanted_city and row["city"] and _fold(row["city"]) != wanted_city:
+            continue
+        category = row["category"]
+        searchable = f"{category} {row['types']}"
+        trap = _tourist_trap_score(row["rating"], row["review_count"])
+        if trap >= 0.8 or "turistik" in category.lower():
+            continue
+        lat, lng = _to_float(row["lat"]), _to_float(row["lng"])
+        matched = _category_match(profile, searchable)
+        candidates.append(
+            VenueCandidate(
+                place_id=str(row["place_id"] or row["name"]),
+                name=row["name"],
+                category=category,
+                types=row["types"],
+                rating=_to_float(row["rating"]),
+                review_count=_to_int(row["review_count"]),
+                price_level=row["price_level"],
+                location=GeoPoint(lat=lat, lng=lng) if lat is not None and lng is not None else None,
+                tourist_trap_score=trap,
+                estimated_cost_per_person=estimate_cost(row["price_level"]),
+                match_reason=(
+                    f"ChromaDB · {profile.mode.value} mod · tuzak skoru {trap}"
+                    if matched
+                    else f"ChromaDB otantik alternatif · tuzak skoru {trap}"
+                ),
+            )
+        )
+        if len(candidates) >= limit:
+            break
+    return candidates or None
 
 
 def retrieve_venues(
@@ -141,7 +244,12 @@ def retrieve_venues(
     limit: int = 10,
     source: str = "auto",
 ) -> list[VenueCandidate]:
-    """source: 'auto' (csv varsa csv, yoksa mock) | 'csv' | 'mock'."""
+    """source: 'auto' | 'csv' | 'mock' | 'chroma' (ChromaDB, yoksa csv)."""
+    if source in ("chroma", "auto"):
+        chroma_hits = _retrieve_from_chroma(profile, city, limit)
+        if chroma_hits:
+            return chroma_hits
+
     rows = None if source == "mock" else _load_rows()
     if rows is None:
         if source == "csv":

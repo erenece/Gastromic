@@ -4,7 +4,22 @@ mixin HomeMapCardWidget {
   static Widget mapCard(
     BuildContext context, {
     required VoidCallback onExplore,
+    double? userLat,
+    double? userLng,
+    List<VenueModel> venues = const [],
   }) {
+    final markers = venues
+        .where((v) => v.latitude != null && v.longitude != null)
+        .map(
+          (v) => GastromicMapMarker(
+            id: v.id,
+            latitude: v.latitude!,
+            longitude: v.longitude!,
+            title: v.name,
+          ),
+        )
+        .toList();
+
     return ClipRRect(
       borderRadius: context.normalBorderRadius,
       child: SizedBox(
@@ -12,26 +27,25 @@ mixin HomeMapCardWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // google maps entegrasyonu gelecek
-            Container(
-              color: context.cPrimary.withValues(alpha: 0.08),
-              child: Center(
-                child: Icon(
-                  Icons.map_outlined,
-                  size: 40,
-                  color: context.cPrimary.withValues(alpha: 0.3),
-                ),
-              ),
+            GastromicGoogleMap(
+              latitude: userLat,
+              longitude: userLng,
+              zoom: 12,
+              markers: markers,
+              interactive: false,
+              showMyLocation: false,
             ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.6),
-                    Colors.transparent,
-                  ],
+            IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.6),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),

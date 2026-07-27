@@ -27,22 +27,11 @@ mixin VenueDetailDishesWidget {
                     Expanded(
                       child: ClipRRect(
                         borderRadius: context.mediumBorderRadius,
-                        child: dish.imageUrl.isNotEmpty
-                            ? Image.network(
-                                dish.imageUrl,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                width: double.infinity,
-                                color: context.cPrimary.withValues(alpha: 0.1),
-                                child: Icon(
-                                  Icons.restaurant_menu,
-                                  color: context.cPrimary.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                ),
-                              ),
+                        child: VenueImage(
+                          imageUrl: dish.imageUrl,
+                          category: dish.name,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     context.sizedHeightBoxLow,

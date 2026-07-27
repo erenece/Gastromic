@@ -58,6 +58,8 @@ class TasteProfile(BaseModel):
     mode: DailyMode
     mode_summary: str = ""
     hard_constraints: list[str] = Field(default_factory=list)
+    requires_smoking_area: bool = False
+    requires_alcohol: bool = False
 
 
 class VenueCandidate(BaseModel):
@@ -80,6 +82,8 @@ class VenueCandidate(BaseModel):
     # operation_view'ın busyness sözleşmesiyle birebir hizalı (veri seti 0-100'dür).
     busyness: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     quietest_hour: Optional[int] = Field(default=None, ge=0, le=23)
+    alcohol_served: Optional[bool] = None
+    smoking_area: Optional[bool] = None
 
 
 # --- Sprint 2: Agent Debate ---
