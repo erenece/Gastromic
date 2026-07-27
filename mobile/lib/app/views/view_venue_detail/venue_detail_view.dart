@@ -6,6 +6,7 @@ import 'package:gastromic/app/views/view_venue_detail/view_model/venue_detail_vi
 import 'package:gastromic/app/views/view_venue_detail/widgets/venue_detail_widgets.dart';
 import 'package:gastromic/core/enums/view_status.dart';
 import 'package:gastromic/core/extensions/core_extensions.dart';
+import 'package:gastromic/core/navigation/app_navigation.dart';
 import 'package:gastromic/core/services/pending_visit_service.dart';
 import 'package:gastromic/core/utils/maps_launcher.dart';
 import 'package:gastromic/core/widgets/primary_button.dart';
@@ -106,7 +107,6 @@ class VenueDetailView extends StatelessWidget with VenueDetailWidgets {
                             reviews(
                               context,
                               reviews: venue.reviews,
-                              onSeeAll: () {},
                             ),
                             context.sizedHeightBoxMedium,
                             locationSection(context, venue: venue),
@@ -125,6 +125,8 @@ class VenueDetailView extends StatelessWidget with VenueDetailWidgets {
                                     latitude: venue.latitude,
                                     longitude: venue.longitude,
                                   );
+                                  if (!context.mounted) return;
+                                  AppNavigation.goToHomeTab(context.router);
                                   await MapsLauncher.openDirections(
                                     latitude: venue.latitude,
                                     longitude: venue.longitude,

@@ -16,7 +16,6 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
     on<OperationInitialEvent>(_initial);
     on<OperationPriceRangeChangedEvent>(_priceChanged);
     on<OperationBusynessChangedEvent>(_busynessChanged);
-    on<OperationOpenNowToggledEvent>(_openNowToggled);
     on<OperationVenueSelectedEvent>(_venueSelected);
     on<OperationCardClosedEvent>(_cardClosed);
   }
@@ -51,12 +50,13 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
       );
 
       emit(
-        next.copyWith(
-          status: ViewStatus.success,
-          allVenues: venues,
-          filteredVenues: _applyFilters(venues, next),
-          userLat: lat,
-          userLng: lng,
+        _withFilteredVenues(
+          next.copyWith(
+            status: ViewStatus.success,
+            userLat: lat,
+            userLng: lng,
+          ),
+          venues,
         ),
       );
     } catch (e) {
@@ -74,9 +74,24 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
       final priceOk =
           v.price >= s.priceRange.start && v.price <= s.priceRange.end;
       final busyOk = v.busyness <= s.busynessThreshold;
-      final openOk = !s.openNowOnly || v.isOpenNow;
+      final openOk = v.isCurrentlyOpen;
       return priceOk && busyOk && openOk;
     }).toList();
+  }
+
+  OperationState _withFilteredVenues(
+    OperationState s,
+    List<MapVenueModel> venues,
+  ) {
+    final filtered = _applyFilters(venues, s);
+    final selectedId = s.selectedVenueId;
+    final clearSelection = selectedId != null &&
+        !filtered.any((venue) => venue.id == selectedId);
+    return s.copyWith(
+      allVenues: venues,
+      filteredVenues: filtered,
+      clearSelection: clearSelection,
+    );
   }
 
   FutureOr<void> _priceChanged(
@@ -92,14 +107,6 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
     Emitter<OperationState> emit,
   ) {
     final next = state.copyWith(busynessThreshold: event.busyness);
-    emit(next.copyWith(filteredVenues: _applyFilters(state.allVenues, next)));
-  }
-
-  FutureOr<void> _openNowToggled(
-    OperationOpenNowToggledEvent event,
-    Emitter<OperationState> emit,
-  ) {
-    final next = state.copyWith(openNowOnly: !state.openNowOnly);
     emit(next.copyWith(filteredVenues: _applyFilters(state.allVenues, next)));
   }
 

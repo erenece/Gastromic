@@ -4,25 +4,12 @@ mixin VenueDetailReviewsWidget {
   static Widget reviews(
     BuildContext context, {
     required List<ReviewModel> reviews,
-    required VoidCallback onSeeAll,
   }) {
     if (reviews.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Değerlendirmeler', style: context.titleLarge),
-            GestureDetector(
-              onTap: onSeeAll,
-              child: Text(
-                'Tümünü Gör',
-                style: context.bodyMedium.copyWith(color: context.cPrimary),
-              ),
-            ),
-          ],
-        ),
+        Text('Değerlendirmeler', style: context.titleLarge),
         context.sizedHeightBoxNormal,
         ...reviews.map((review) {
           return Container(

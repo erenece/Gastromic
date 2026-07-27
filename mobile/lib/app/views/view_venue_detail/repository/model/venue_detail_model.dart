@@ -21,6 +21,8 @@ class VenueDetailModel {
   final String address;
   final String phone;
   final String workingHours;
+  final bool? isOpenNow;
+  final List<String> openingHoursWeek;
   final double latitude;
   final double longitude;
   final int priceLevel;
@@ -47,6 +49,8 @@ class VenueDetailModel {
     required this.address,
     required this.phone,
     required this.workingHours,
+    this.isOpenNow,
+    this.openingHoursWeek = const [],
     required this.latitude,
     required this.longitude,
     required this.priceLevel,

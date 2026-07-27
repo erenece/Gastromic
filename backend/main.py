@@ -37,6 +37,7 @@ from gastro_agents.conflicts import check_budget
 from backend.chroma_indexer import index_places_from_csv, index_popular_times
 from backend.config import DEFAULT_VISIT_DAY, DEFAULT_VISIT_HOUR, POPULAR_TIMES_RAW
 from backend.database import collection
+from backend.opening_hours import fetch_and_format
 
 app = FastAPI(title="GastroLogic API", version="1.0.0-sprint3")
 router = SupervisorRouter()
@@ -290,3 +291,37 @@ async def recommend_summary(body: RecommendForVenueRequest):
         "fits_preferences": fits,
         "checks": checks,
     }
+
+
+@app.get("/venues/{venue_id}/opening-hours")
+async def venue_opening_hours(venue_id: str):
+    """Google Places'ten çalışma saatlerini çeker; mümkünse Firestore'a yazar."""
+    try:
+        hours = fetch_and_format(venue_id)
+    except RuntimeError as exc:
+        return {"error": str(exc)}
+
+    if hours.get("error"):
+        return {
+            "workingHours": "Bilgi mevcut değil",
+            "isOpenNow": None,
+            "openingHoursWeek": [],
+            "error": hours["error"],
+        }
+
+    if hours["workingHours"] != "Bilgi mevcut değil":
+        try:
+            from backend.firestore_seed import _init_firebase
+
+            db, _, _ = _init_firebase("dev")
+            payload = {
+                "workingHours": hours["workingHours"],
+                "openingHoursWeek": hours["openingHoursWeek"],
+            }
+            if hours["isOpenNow"] is not None:
+                payload["isOpenNow"] = hours["isOpenNow"]
+            db.collection("venues").document(venue_id).set(payload, merge=True)
+        except Exception:
+            pass
+
+    return hours

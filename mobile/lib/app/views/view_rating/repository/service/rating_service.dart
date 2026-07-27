@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:gastromic/app/views/view_rating/repository/model/pending_visit_model.dart';
+import 'package:gastromic/app/views/view_rating/repository/model/user_review_history_model.dart';
 import 'package:gastromic/core/services/location_service.dart';
+import 'package:gastromic/core/utils/review_date_formatter.dart';
 
 class RatingService {
   RatingService({
@@ -52,31 +54,76 @@ class RatingService {
     return distance <= matchRadiusMeters;
   }
 
+  Future<List<UserReviewHistoryModel>> fetchReviewHistory() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(_uid)
+        .collection('reviewHistory')
+        .get();
+
+    final history = snapshot.docs.map((doc) {
+      final data = doc.data();
+      final createdAt = data['createdAt'];
+      return UserReviewHistoryModel(
+        venueId: doc.id,
+        venueName: data['venueName']?.toString() ?? 'Mekan',
+        rating: (data['rating'] ?? 0).toDouble(),
+        comment: data['comment']?.toString() ?? '',
+        date: ReviewDateFormatter.format(
+          date: data['date'],
+          createdAt: createdAt,
+        ),
+        createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
+      );
+    }).toList();
+
+    history.sort((a, b) {
+      final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+
+    return history;
+  }
+
   Future<void> submitReview({
     required String venueId,
+    required String venueName,
     required double rating,
     required String comment,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Oturum bulunamadı');
 
-    await _firestore
+    final batch = _firestore.batch();
+    final venueReviewRef = _firestore
         .collection('venues')
         .doc(venueId)
         .collection('reviews')
+        .doc(user.uid);
+    final historyRef = _firestore
+        .collection('users')
         .doc(user.uid)
-        .set({
-          'userName': user.displayName ?? 'Kullanıcı',
-          'rating': rating,
-          'comment': comment,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-    await _firestore
+        .collection('reviewHistory')
+        .doc(venueId);
+    final pendingRef = _firestore
         .collection('users')
         .doc(user.uid)
         .collection('pendingVisits')
-        .doc(venueId)
-        .delete();
+        .doc(venueId);
+
+    final reviewPayload = {
+      'userId': user.uid,
+      'userName': user.displayName ?? 'Kullanıcı',
+      'venueName': venueName,
+      'rating': rating,
+      'comment': comment,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    batch.set(venueReviewRef, reviewPayload);
+    batch.set(historyRef, reviewPayload);
+    batch.delete(pendingRef);
+    await batch.commit();
   }
 }

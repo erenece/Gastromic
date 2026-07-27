@@ -5,6 +5,7 @@ mixin SearchBarWidget {
     BuildContext context, {
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
+    required ValueChanged<String> onSubmitted,
     required VoidCallback onFilterTap,
   }) {
     return Row(
@@ -13,6 +14,8 @@ mixin SearchBarWidget {
           child: TextField(
             controller: controller,
             onChanged: onChanged,
+            onSubmitted: onSubmitted,
+            textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: 'Ne arıyorsun?',
               prefixIcon: const Icon(Icons.search),
