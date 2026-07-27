@@ -16,12 +16,15 @@ class RatingView extends StatelessWidget with RatingWidgets {
     return BlocProvider(
       create: (_) => RatingViewModel()..add(RatingInitialEvent()),
       child: BlocConsumer<RatingViewModel, RatingState>(
+        listenWhen: (prev, curr) =>
+            (prev.errorMessage != curr.errorMessage &&
+                curr.errorMessage != null) ||
+            (!prev.isSubmitted && curr.isSubmitted),
         listener: (context, state) {
-          if (state.status == ViewStatus.failure &&
-              state.errorMessage != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+          if (state.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.errorMessage!)),
+            );
           }
           if (state.isSubmitted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +68,7 @@ class RatingView extends StatelessWidget with RatingWidgets {
                                 starRating: state.starRating,
                                 commentController: viewModel.commentController,
                                 canSubmit: state.canSubmit,
-                                isLoading: state.status == ViewStatus.loading,
+                                isLoading: state.isSubmitting,
                                 onStarChanged: (r) =>
                                     viewModel.add(RatingStarChangedEvent(r)),
                                 onCommentChanged: (c) =>

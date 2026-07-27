@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:gastromic/app/views/view_operation/repository/service/operation_service.dart';
 import 'package:gastromic/core/enums/view_status.dart';
+import 'package:gastromic/core/models/user_preferences_snapshot.dart';
 import 'package:gastromic/core/models/map_venue_model.dart';
 
 part 'operation_event.dart';
@@ -21,6 +22,7 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
   }
 
   final OperationService _service = OperationService();
+  UserPreferencesSnapshot? _prefs;
 
   FutureOr<void> _initial(
     OperationInitialEvent event,
@@ -28,8 +30,8 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
   ) async {
     emit(state.copyWith(status: ViewStatus.loading));
     try {
-      final prefs = await _service.loadUserPreferences();
-      final venues = await _service.fetchVenues();
+      _prefs = await _service.loadUserPreferences();
+      final prefs = _prefs!;
 
       double lat = 0, lng = 0;
       try {
@@ -37,6 +39,11 @@ class OperationViewModel extends Bloc<OperationEvent, OperationState> {
         lat = pos.latitude;
         lng = pos.longitude;
       } catch (_) {}
+
+      final venues = await _service.fetchVenues(
+        userLat: lat,
+        userLng: lng,
+      );
 
       final budgetMax = prefs.budget * 1.5;
       final next = state.copyWith(

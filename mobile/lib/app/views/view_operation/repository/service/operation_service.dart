@@ -1,64 +1,62 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:gastromic/core/models/map_venue_model.dart';
 import 'package:gastromic/core/models/user_preferences_snapshot.dart';
+import 'package:gastromic/core/services/location_service.dart';
 import 'package:gastromic/core/services/user_preferences_service.dart';
+import 'package:gastromic/core/utils/venue_distance_utils.dart';
+import 'package:gastromic/core/utils/venue_firestore_fetch.dart';
 
 class OperationService {
   OperationService({
     FirebaseFirestore? firestore,
     UserPreferencesService? preferencesService,
+    LocationService? locationService,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _preferencesService = preferencesService ?? UserPreferencesService();
+        _preferencesService = preferencesService ?? UserPreferencesService(),
+        _location = locationService ?? LocationService.instance;
 
   final FirebaseFirestore _firestore;
-  final Geocoding _geocoding = Geocoding();
   final UserPreferencesService _preferencesService;
+  final LocationService _location;
 
   Future<Position> currentPosition() async {
-    final permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
+    final position = await _location.getCurrentPosition();
+    if (position == null) {
       throw Exception('Konum izni verilmedi');
     }
-    return Geolocator.getCurrentPosition();
-  }
-
-  Future<String> _resolveCity() async {
-    try {
-      final pos = await currentPosition();
-      final placemarks = await _geocoding.placemarkFromCoordinates(
-        pos.latitude,
-        pos.longitude,
-      );
-      if (placemarks.isEmpty) return 'İstanbul';
-      return placemarks.first.administrativeArea ?? 'İstanbul';
-    } catch (_) {
-      return 'İstanbul';
-    }
+    return position;
   }
 
   Future<UserPreferencesSnapshot> loadUserPreferences() {
     return _preferencesService.loadPreferences();
   }
 
-  Future<List<MapVenueModel>> fetchVenues() async {
-    final city = await _resolveCity();
+  Future<List<MapVenueModel>> fetchVenues({
+    required double userLat,
+    required double userLng,
+  }) async {
+    final docs = await VenueFirestoreFetch.fetchPool(
+      _firestore,
+      userLat: userLat,
+      userLng: userLng,
+    );
 
-    var snapshot = await _firestore
-        .collection('venues')
-        .where('city', isEqualTo: city)
-        .limit(500)
-        .get();
+    var venues = docs
+        .map((doc) => MapVenueModel.fromMap(doc.id, doc.data))
+        .toList();
 
-    if (snapshot.docs.isEmpty) {
-      snapshot = await _firestore.collection('venues').limit(500).get();
+    if (userLat != 0 || userLng != 0) {
+      venues = VenueDistanceUtils.filterAndSortByDistance(
+        venues: venues,
+        userLat: userLat,
+        userLng: userLng,
+        readLat: (v) => v.latitude,
+        readLng: (v) => v.longitude,
+      );
     }
 
-    return snapshot.docs
-        .map((doc) => MapVenueModel.fromMap(doc.id, doc.data()))
-        .toList();
+    return venues;
   }
 }

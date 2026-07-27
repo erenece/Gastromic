@@ -5,7 +5,6 @@ mixin VenueDetailHeroWidget {
     BuildContext context, {
     required VenueDetailModel venue,
     required bool isFavorite,
-    required VoidCallback onBack,
     required VoidCallback onToggleFavorite,
   }) {
     return SizedBox(
@@ -31,21 +30,20 @@ mixin VenueDetailHeroWidget {
               ),
             ),
           ),
-          // Geri butonu
+          // Favori butonu (sağ üst)
           Positioned(
-            top: 12,
-            left: 12,
-            child: _circleButton(context, Icons.arrow_back, onBack),
-          ),
-          // Favori butonu (sağ alt)
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: _circleButton(
-              context,
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              onToggleFavorite,
-              iconColor: isFavorite ? context.cPrimary : null,
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: _circleButton(
+                  context,
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  onToggleFavorite,
+                  iconColor: isFavorite ? context.cPrimary : null,
+                ),
+              ),
             ),
           ),
           // Başlık bloğu
@@ -116,6 +114,7 @@ mixin VenueDetailHeroWidget {
     Color? iconColor,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         padding: context.paddingLow,

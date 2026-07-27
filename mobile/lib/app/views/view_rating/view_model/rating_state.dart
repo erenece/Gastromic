@@ -8,6 +8,7 @@ class RatingState {
   final String comment;
   final String? errorMessage;
   final bool isSubmitted;
+  final bool isSubmitting;
 
   const RatingState({
     this.status = ViewStatus.initial,
@@ -17,6 +18,7 @@ class RatingState {
     this.comment = '',
     this.errorMessage,
     this.isSubmitted = false,
+    this.isSubmitting = false,
   });
 
   bool get canSubmit => starRating > 0;
@@ -30,6 +32,7 @@ class RatingState {
     String? comment,
     String? errorMessage,
     bool? isSubmitted,
+    bool? isSubmitting,
   }) {
     return RatingState(
       status: status ?? this.status,
@@ -41,6 +44,7 @@ class RatingState {
       comment: comment ?? this.comment,
       errorMessage: errorMessage ?? this.errorMessage,
       isSubmitted: isSubmitted ?? this.isSubmitted,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
 }

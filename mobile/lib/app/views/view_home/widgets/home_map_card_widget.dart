@@ -27,14 +27,7 @@ mixin HomeMapCardWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            GastromicGoogleMap(
-              latitude: userLat,
-              longitude: userLng,
-              zoom: 12,
-              markers: markers,
-              interactive: false,
-              showMyLocation: false,
-            ),
+            MapPreviewPlaceholder(markers: markers),
             IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(

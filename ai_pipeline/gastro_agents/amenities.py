@@ -10,9 +10,8 @@ _ALCOHOL_TYPES = {
     "brewery",
     "beer_garden",
 }
-_SMOKING_TYPES = {"hookah_bar", "night_club", "bar"}
-_ALCOHOL_KEYWORDS = ("bar", "pub", "bira", "wine", "cocktail", "alkol")
-_SMOKING_KEYWORDS = ("sigara", "smoking", "nargile", "hookah", "shisha")
+# Yalnızca gerçek alkol servisi olan mekan tipleri — genel restoranlarda false kalır.
+_ALCOHOL_KEYWORDS = ("bar", "pub", "meyhane", "meyhanesi")
 
 
 def infer_amenities(types: str = "", category: str = "", name: str = "") -> tuple[bool, bool]:
@@ -20,5 +19,6 @@ def infer_amenities(types: str = "", category: str = "", name: str = "") -> tupl
     type_tokens = {t.strip().lower() for t in types.split(",") if t.strip()}
 
     alcohol = bool(type_tokens & _ALCOHOL_TYPES) or any(k in haystack for k in _ALCOHOL_KEYWORDS)
-    smoking = bool(type_tokens & _SMOKING_TYPES) or any(k in haystack for k in _SMOKING_KEYWORDS)
+    # Sigara: varsayılan olarak tüm mekanlarda içilebilir kabul edilir.
+    smoking = True
     return alcohol, smoking
