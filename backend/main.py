@@ -21,11 +21,23 @@ from gastro_agents.tools.density_tool import busyness_at, enrich_busyness, quiet
 from gastro_agents.tools.tsp_tool import solve_route
 from gastro_agents.tools.venue_retriever_tool import get_venue_by_id, retrieve_venues
 from gastro_agents.tools.preference_tool import normalize_preferences
-from gastro_agents.conflicts import check_allergen, check_amenities, check_budget
+from gastro_agents.advisory import (
+    build_advisory_clauses,
+    build_fallback_summary,
+    check_user_allergen,
+    check_user_condition,
+    compute_mode_match,
+    describe_rating,
+    enrich_ai_summary,
+)
+from gastro_agents.tools.preference_tool import budget_band
+from gastro_agents.amenities import infer_amenities
+from gastro_agents.conflicts import check_budget
 
 from backend.chroma_indexer import index_places_from_csv, index_popular_times
 from backend.config import DEFAULT_VISIT_DAY, DEFAULT_VISIT_HOUR, POPULAR_TIMES_RAW
 from backend.database import collection
+from backend.opening_hours import fetch_and_format
 
 app = FastAPI(title="GastroLogic API", version="1.0.0-sprint3")
 router = SupervisorRouter()
@@ -142,6 +154,11 @@ class RecommendForVenueRequest(BaseModel):
     visit_day: str = DEFAULT_VISIT_DAY
     visit_hour: int = DEFAULT_VISIT_HOUR
     location: Optional[GeoPoint] = None
+    venue_name: Optional[str] = None
+    venue_category: Optional[str] = None
+    venue_types: Optional[str] = None
+    venue_district: Optional[str] = None
+    review_snippets: list[str] = Field(default_factory=list)
 
 
 @app.post("/recommend/summary")
@@ -160,6 +177,34 @@ async def recommend_summary(body: RecommendForVenueRequest):
     )
     profile = normalize_preferences(prefs)
     candidate = get_venue_by_id(body.venue_id)
+    if candidate is None and body.venue_name:
+        from gastro_agents.contracts import VenueCandidate
+
+        alcohol, smoking = infer_amenities(
+            body.venue_types or "",
+            body.venue_category or "",
+            body.venue_name or "",
+        )
+        candidate = VenueCandidate(
+            place_id=body.venue_id,
+            name=body.venue_name,
+            category=body.venue_category or "",
+            types=body.venue_types or "",
+            alcohol_served=alcohol,
+            smoking_area=smoking,
+        )
+    elif candidate is not None and (
+        candidate.alcohol_served is None or candidate.smoking_area is None
+    ):
+        alcohol, smoking = infer_amenities(
+            candidate.types, candidate.category, candidate.name
+        )
+        candidate = candidate.model_copy(
+            update={
+                "alcohol_served": alcohol,
+                "smoking_area": smoking,
+            }
+        )
     if candidate is None:
         return {
             "venue_id": body.venue_id,
@@ -169,34 +214,54 @@ async def recommend_summary(body: RecommendForVenueRequest):
         }
 
     enrich_busyness([candidate], prefs.visit_day, prefs.visit_hour)
-    allergen = check_allergen(candidate, profile)
+    allergen = check_user_allergen(candidate, prefs.allergens)
+    condition = check_user_condition(candidate, prefs.sensitivities)
     budget_verdict, estimated_cost = check_budget(candidate, profile)
-    amenity_verdict, amenity_reason = check_amenities(candidate, profile)
-    searchable = f"{candidate.category} {candidate.types}".lower()
-    mode_match = (
-        "uyumlu"
-        if any(pc.split()[0].lower() in searchable for pc in profile.preferred_categories)
-        else "nötr"
+    mode_match, mode_match_reason = compute_mode_match(candidate, profile)
+    advisories = build_advisory_clauses(
+        allergen=allergen,
+        condition=condition,
+        mode_match=mode_match,
+        profile=profile,
+        requires_alcohol=prefs.alcohol_served,
+        alcohol_served=candidate.alcohol_served,
+        requires_smoking=prefs.smoking_area,
+        smoking_available=candidate.smoking_area,
     )
 
     checks = {
         "allergen": allergen,
+        "condition": condition,
+        "user_allergens": prefs.allergens,
+        "user_conditions": prefs.sensitivities,
         "budget_verdict": budget_verdict,
         "estimated_cost": estimated_cost,
-        "amenity_verdict": amenity_verdict if amenity_verdict != "ok" else "ok",
+        "venue_cost_band": budget_band(estimated_cost),
+        "user_budget_band": profile.budget_band,
         "mode_match": mode_match,
+        "mode_match_reason": mode_match_reason,
+        "rating_phrase": describe_rating(candidate.rating),
+        "alcohol_warning": prefs.alcohol_served and candidate.alcohol_served is False,
+        "smoking_available": candidate.smoking_area,
     }
-    fits = allergen is None and budget_verdict != "veto"
+    fits = True
 
     llm = build_llm()
     if llm.provider == "gemini":
         try:
-            prompt = venue_summary.build_prompt(profile, candidate, prefs, checks)
+            prompt = venue_summary.build_prompt(
+                profile,
+                candidate,
+                prefs,
+                checks,
+                body.review_snippets or None,
+                district=body.venue_district,
+            )
             text = llm.invoke(prompt, system=venue_summary.SYSTEM_PROMPT)
             if text:
                 return {
                     "venue_id": body.venue_id,
-                    "ai_summary": text,
+                    "ai_summary": enrich_ai_summary(text, advisories),
                     "match_reason": candidate.match_reason,
                     "fits_preferences": fits,
                     "checks": checks,
@@ -204,22 +269,59 @@ async def recommend_summary(body: RecommendForVenueRequest):
         except Exception:
             pass
 
-    summary_parts = [f"{candidate.name} · {profile.mode.value} moduna göre değerlendirildi."]
-    if allergen:
-        summary_parts.append(f"Alerjen riski: {allergen} — menüyü mutlaka teyit edin.")
-    if budget_verdict == "veto":
-        summary_parts.append(f"Tahmini maliyet (~{estimated_cost} TL) bütçenizi aşıyor.")
-    elif budget_verdict == "downrank":
-        summary_parts.append(f"Tahmini maliyet ~{estimated_cost} TL; bütçenize yakın.")
-    if amenity_reason:
-        summary_parts.append(amenity_reason)
-    if mode_match == "uyumlu":
-        summary_parts.append(f"{profile.mode.value.capitalize()} modunuza uygun bir profil.")
+    summary_parts = [
+        build_fallback_summary(
+            name=candidate.name,
+            district=body.venue_district,
+            rating=candidate.rating,
+            budget_verdict=budget_verdict,
+            user_budget=profile.budget_per_person,
+            venue_cost=estimated_cost,
+            mode=profile.mode,
+            mode_match=mode_match,
+            mode_match_reason=mode_match_reason,
+        )
+    ]
+    summary = enrich_ai_summary(" ".join(summary_parts), advisories)
 
     return {
         "venue_id": body.venue_id,
-        "ai_summary": " ".join(summary_parts),
+        "ai_summary": summary,
         "match_reason": candidate.match_reason,
         "fits_preferences": fits,
         "checks": checks,
     }
+
+
+@app.get("/venues/{venue_id}/opening-hours")
+async def venue_opening_hours(venue_id: str):
+    """Google Places'ten çalışma saatlerini çeker; mümkünse Firestore'a yazar."""
+    try:
+        hours = fetch_and_format(venue_id)
+    except RuntimeError as exc:
+        return {"error": str(exc)}
+
+    if hours.get("error"):
+        return {
+            "workingHours": "Bilgi mevcut değil",
+            "isOpenNow": None,
+            "openingHoursWeek": [],
+            "error": hours["error"],
+        }
+
+    if hours["workingHours"] != "Bilgi mevcut değil":
+        try:
+            from backend.firestore_seed import _init_firebase
+
+            db, _, _ = _init_firebase("dev")
+            payload = {
+                "workingHours": hours["workingHours"],
+                "openingHoursWeek": hours["openingHoursWeek"],
+            }
+            if hours["isOpenNow"] is not None:
+                payload["isOpenNow"] = hours["isOpenNow"]
+            db.collection("venues").document(venue_id).set(payload, merge=True)
+        except Exception:
+            pass
+
+    return hours

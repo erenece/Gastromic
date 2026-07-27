@@ -22,3 +22,5 @@ class RatingCommentChangedEvent extends RatingEvent {
 }
 
 class RatingSubmittedEvent extends RatingEvent {}
+
+class RatingProximityCheckEvent extends RatingEvent {}

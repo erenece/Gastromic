@@ -12,6 +12,7 @@ class MainWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AutoTabsRouter(
+      lazyLoad: true,
       routes: [
         HomeViewRoute(),
         SearchViewRoute(),

@@ -43,6 +43,12 @@ _ALLERGEN_KEYWORDS: dict[str, list[str]] = {
               "chocolate", "çikolata", "baklava"],
     "şerbet": ["şerbet", "baklava", "dessert", "tatlı"],
     "sakatat": ["sakatat", "offal", "işkembe", "kokoreç"],
+    "balık": ["balık", "fish", "seafood", "deniz"],
+    "deniz ürünleri": ["deniz", "seafood", "balık", "karides", "midye"],
+    "soya": ["soya", "soy"],
+    "susam": ["susam", "sesame"],
+    "yer fıstığı": ["fıstık", "peanut"],
+    "kuruyemiş": ["kuruyemiş", "nut", "badem", "ceviz", "fındık"],
 }
 
 # Bu tipler hayvansal alerjenler için "güvenli sinyal" sayılır (vegan mutfak).
@@ -127,11 +133,9 @@ BUSY_DOWNRANK_THRESHOLD = 0.85  # bu yoğunluğun üstü "kalabalık saat" sayı
 
 
 def check_amenities(candidate: VenueCandidate, profile: TasteProfile) -> tuple[str, Optional[str]]:
-    """('ok'|'downrank', sebep) — sigara/alkol tercihi karşılanmıyorsa puan kır."""
-    if profile.requires_smoking_area and candidate.smoking_area is False:
-        return "downrank", "sigara alanı tercihi karşılanmıyor"
+    """('ok'|'info', sebep) — sigara/alkol bilgi amaçlı; liste/eleme yapmaz."""
     if profile.requires_alcohol and candidate.alcohol_served is False:
-        return "downrank", "alkol servisi tercihi karşılanmıyor"
+        return "info", "alkol servisi bu mekan tipinde genelde sunulmaz"
     return "ok", None
 
 

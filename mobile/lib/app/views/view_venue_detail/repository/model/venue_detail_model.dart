@@ -10,12 +10,19 @@ class VenueDetailModel {
   final String distance;
   final String aiSummary;
   final String description;
+  final bool fitsPreferences;
+  final Map<String, dynamic> preferenceChecks;
+  final List<String> userAllergens;
+  final List<String> userConditions;
+  final String userDailyMode;
   final List<String> features;
   final List<DishModel> dishes;
   final List<ReviewModel> reviews;
   final String address;
   final String phone;
   final String workingHours;
+  final bool? isOpenNow;
+  final List<String> openingHoursWeek;
   final double latitude;
   final double longitude;
   final int priceLevel;
@@ -31,12 +38,19 @@ class VenueDetailModel {
     required this.distance,
     required this.aiSummary,
     required this.description,
+    this.fitsPreferences = true,
+    this.preferenceChecks = const {},
+    this.userAllergens = const [],
+    this.userConditions = const [],
+    this.userDailyMode = '',
     required this.features,
     required this.dishes,
     required this.reviews,
     required this.address,
     required this.phone,
     required this.workingHours,
+    this.isOpenNow,
+    this.openingHoursWeek = const [],
     required this.latitude,
     required this.longitude,
     required this.priceLevel,

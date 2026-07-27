@@ -6,6 +6,7 @@ import 'package:gastromic/core/models/gastromic_map_marker.dart';
 /// İstanbul merkez — konum alınamazsa varsayılan.
 const kDefaultMapCenter = LatLng(41.0082, 28.9784);
 
+/// Canlı Google Maps — yalnızca Bul ekranı gibi etkileşimli haritalarda kullanın.
 class GastromicGoogleMap extends StatefulWidget {
   final double? latitude;
   final double? longitude;
@@ -14,6 +15,7 @@ class GastromicGoogleMap extends StatefulWidget {
   final String? selectedMarkerId;
   final bool interactive;
   final bool showMyLocation;
+  final bool liteMode;
   final void Function(String markerId)? onMarkerTap;
 
   const GastromicGoogleMap({
@@ -25,6 +27,7 @@ class GastromicGoogleMap extends StatefulWidget {
     this.selectedMarkerId,
     this.interactive = true,
     this.showMyLocation = true,
+    this.liteMode = false,
     this.onMarkerTap,
   });
 
@@ -35,13 +38,14 @@ class GastromicGoogleMap extends StatefulWidget {
 class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
   GoogleMapController? _controller;
   Set<Marker> _markers = {};
+  bool _cameraFitted = false;
 
   @override
   void didUpdateWidget(covariant GastromicGoogleMap oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.markers != widget.markers ||
         oldWidget.selectedMarkerId != widget.selectedMarkerId) {
-      _buildMarkers();
+      setState(_buildMarkers);
     }
   }
 
@@ -49,6 +53,12 @@ class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
   void initState() {
     super.initState();
     _buildMarkers();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
   }
 
   LatLng get _center {
@@ -86,7 +96,10 @@ class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
     _controller = controller;
-    await _fitCamera();
+    if (!_cameraFitted) {
+      _cameraFitted = true;
+      await _fitCamera();
+    }
   }
 
   Future<void> _fitCamera() async {
@@ -101,7 +114,7 @@ class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
     }
 
     if (points.length <= 1) {
-      await controller.animateCamera(
+      await controller.moveCamera(
         CameraUpdate.newLatLngZoom(_center, widget.zoom),
       );
       return;
@@ -125,9 +138,9 @@ class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
     );
 
     try {
-      await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 56));
+      await controller.moveCamera(CameraUpdate.newLatLngBounds(bounds, 56));
     } catch (_) {
-      await controller.animateCamera(
+      await controller.moveCamera(
         CameraUpdate.newLatLngZoom(_center, widget.zoom),
       );
     }
@@ -145,6 +158,7 @@ class _GastromicGoogleMapState extends State<GastromicGoogleMap> {
       rotateGesturesEnabled: widget.interactive,
       tiltGesturesEnabled: widget.interactive,
       zoomGesturesEnabled: widget.interactive,
+      liteModeEnabled: widget.liteMode,
       onMapCreated: _onMapCreated,
       onTap: widget.interactive ? null : (_) {},
     );

@@ -8,7 +8,6 @@ class OperationState {
   final double userLng;
   final RangeValues priceRange;
   final double busynessThreshold;
-  final bool openNowOnly;
   final String? selectedVenueId;
   final String? errorMessage;
 
@@ -20,7 +19,6 @@ class OperationState {
     this.userLng = 0,
     this.priceRange = const RangeValues(0, 3000),
     this.busynessThreshold = 1.0,
-    this.openNowOnly = false,
     this.selectedVenueId,
     this.errorMessage,
   });
@@ -41,7 +39,6 @@ class OperationState {
     double? userLng,
     RangeValues? priceRange,
     double? busynessThreshold,
-    bool? openNowOnly,
     String? selectedVenueId,
     bool clearSelection = false,
     String? errorMessage,
@@ -54,7 +51,6 @@ class OperationState {
       userLng: userLng ?? this.userLng,
       priceRange: priceRange ?? this.priceRange,
       busynessThreshold: busynessThreshold ?? this.busynessThreshold,
-      openNowOnly: openNowOnly ?? this.openNowOnly,
       selectedVenueId: clearSelection
           ? null
           : (selectedVenueId ?? this.selectedVenueId),

@@ -7,6 +7,7 @@ class HomeState {
   final double userLng;
   final List<VenueModel> nearbyVenues;
   final List<VenueModel> favoriteVenues;
+  final PendingVisitModel? activeNearbyVisit;
   final String? errorMessage;
 
   const HomeState({
@@ -16,6 +17,7 @@ class HomeState {
     this.userLng = 0,
     this.nearbyVenues = const [],
     this.favoriteVenues = const [],
+    this.activeNearbyVisit,
     this.errorMessage,
   });
 
@@ -26,6 +28,8 @@ class HomeState {
     double? userLng,
     List<VenueModel>? nearbyVenues,
     List<VenueModel>? favoriteVenues,
+    PendingVisitModel? activeNearbyVisit,
+    bool clearActiveVisit = false,
     String? errorMessage,
   }) {
     return HomeState(
@@ -35,6 +39,9 @@ class HomeState {
       userLng: userLng ?? this.userLng,
       nearbyVenues: nearbyVenues ?? this.nearbyVenues,
       favoriteVenues: favoriteVenues ?? this.favoriteVenues,
+      activeNearbyVisit: clearActiveVisit
+          ? null
+          : (activeNearbyVisit ?? this.activeNearbyVisit),
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }

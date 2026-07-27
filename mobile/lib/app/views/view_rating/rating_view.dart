@@ -8,50 +8,91 @@ import 'package:gastromic/core/enums/view_status.dart';
 import 'package:gastromic/core/extensions/core_extensions.dart';
 
 @RoutePage()
-class RatingView extends StatelessWidget with RatingWidgets {
+class RatingView extends StatelessWidget {
   RatingView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => RatingViewModel()..add(RatingInitialEvent()),
-      child: BlocConsumer<RatingViewModel, RatingState>(
-        listener: (context, state) {
-          if (state.status == ViewStatus.failure &&
-              state.errorMessage != null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-          }
-          if (state.isSubmitted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Değerlendirmeniz kaydedildi')),
-            );
-          }
-        },
-        builder: (context, state) {
-          final viewModel = context.read<RatingViewModel>();
+      child: const _RatingViewContent(),
+    );
+  }
+}
 
-          return Scaffold(
+class _RatingViewContent extends StatefulWidget {
+  const _RatingViewContent();
+
+  @override
+  State<_RatingViewContent> createState() => _RatingViewContentState();
+}
+
+class _RatingViewContentState extends State<_RatingViewContent>
+    with RatingWidgets, WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      context.read<RatingViewModel>().add(RatingProximityCheckEvent());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<RatingViewModel, RatingState>(
+      listenWhen: (prev, curr) =>
+          (prev.errorMessage != curr.errorMessage &&
+              curr.errorMessage != null) ||
+          (!prev.isSubmitted && curr.isSubmitted),
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage!)),
+          );
+        }
+        if (state.isSubmitted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Değerlendirmeniz kaydedildi')),
+          );
+        }
+      },
+      builder: (context, state) {
+        final viewModel = context.read<RatingViewModel>();
+        final hasPending = state.nearbyVisits.isNotEmpty;
+        final hasHistory = state.pastReviews.isNotEmpty;
+        final isInitialLoading =
+            state.status == ViewStatus.loading && !hasPending && !hasHistory;
+
+        return Scaffold(
+          backgroundColor: context.cBackground,
+          appBar: AppBar(
             backgroundColor: context.cBackground,
-            appBar: AppBar(
-              backgroundColor: context.cBackground,
-              title: Text('Puanlama', style: context.titleLarge),
-            ),
-            body: SafeArea(
-              child:
-                  state.status == ViewStatus.loading &&
-                      state.nearbyVisits.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : state.nearbyVisits.isEmpty
-                  ? emptyState(context)
-                  : SingleChildScrollView(
-                      padding: context.paddingNormal,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+            title: Text('Puanlama', style: context.titleLarge),
+          ),
+          body: SafeArea(
+            child: isInitialLoading
+                ? const Center(child: CircularProgressIndicator())
+                : !hasPending && !hasHistory
+                ? emptyState(context)
+                : SingleChildScrollView(
+                    padding: context.paddingNormal,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (hasPending) ...[
                           Text(
-                            'Deneyiminizi değerlendirin ve size özel avantajlardan yararlanın.',
+                            'Mekana ulaştınız — deneyiminizi değerlendirin.',
                             style: context.bodyMedium,
                           ),
                           context.sizedHeightBoxNormal,
@@ -65,7 +106,7 @@ class RatingView extends StatelessWidget with RatingWidgets {
                                 starRating: state.starRating,
                                 commentController: viewModel.commentController,
                                 canSubmit: state.canSubmit,
-                                isLoading: state.status == ViewStatus.loading,
+                                isLoading: state.isSubmitting,
                                 onStarChanged: (r) =>
                                     viewModel.add(RatingStarChangedEvent(r)),
                                 onCommentChanged: (c) =>
@@ -85,12 +126,19 @@ class RatingView extends StatelessWidget with RatingWidgets {
                             );
                           }),
                         ],
-                      ),
+                        if (hasHistory) ...[
+                          if (hasPending) context.sizedHeightBoxMedium,
+                          historySection(
+                            context,
+                            reviews: state.pastReviews,
+                          ),
+                        ],
+                      ],
                     ),
-            ),
-          );
-        },
-      ),
+                  ),
+          ),
+        );
+      },
     );
   }
 }

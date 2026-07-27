@@ -99,13 +99,10 @@ class OperationView extends StatelessWidget with OperationWidgets {
                         context,
                         priceRange: state.priceRange,
                         busynessThreshold: state.busynessThreshold,
-                        openNowOnly: state.openNowOnly,
                         onPriceChanged: (r) =>
                             viewModel.add(OperationPriceRangeChangedEvent(r)),
                         onBusynessChanged: (b) =>
                             viewModel.add(OperationBusynessChangedEvent(b)),
-                        onOpenNowChanged: (_) =>
-                            viewModel.add(OperationOpenNowToggledEvent()),
                       ),
                     ),
                   ),

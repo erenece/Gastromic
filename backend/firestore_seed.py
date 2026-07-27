@@ -165,8 +165,9 @@ def _venue_doc(row: dict, image_urls: dict[str, dict]) -> dict:
     review_count = _to_int(row.get("Total Review Count")) or 0
     busyness = busyness_at(place_id, DEFAULT_VISIT_DAY, DEFAULT_VISIT_HOUR)
     image = image_urls.get(place_id, {})
+    working_hours, opening_week, is_open_now = _opening_hours_from_row(row)
 
-    return {
+    doc = {
         "name": row.get("Place Name") or "",
         "rating": rating,
         "reviewCount": review_count,
@@ -183,9 +184,38 @@ def _venue_doc(row: dict, image_urls: dict[str, dict]) -> dict:
         "price": estimate_cost(price_level),
         "busyness": busyness if busyness is not None else 0.5,
         "types": row.get("Types") or "",
-        "isOpenNow": True,
+        "isOpenNow": is_open_now if is_open_now is not None else True,
         "touristTrapScore": _tourist_trap_score(rating, review_count),
     }
+    if working_hours:
+        doc["workingHours"] = working_hours
+    if opening_week:
+        doc["openingHoursWeek"] = opening_week
+    return doc
+
+
+def _opening_hours_from_row(row: dict) -> tuple[str, list[str], bool | None]:
+    working = (row.get("Working Hours") or "").strip()
+    week_raw = (row.get("Opening Hours Week") or "").strip()
+    week: list[str] = []
+    if week_raw:
+        try:
+            parsed = json.loads(week_raw)
+            if isinstance(parsed, list):
+                week = [str(x) for x in parsed if str(x).strip()]
+        except json.JSONDecodeError:
+            week = []
+
+    open_raw = row.get("Is Open Now")
+    is_open_now: bool | None
+    if open_raw in (None, ""):
+        is_open_now = None
+    elif isinstance(open_raw, bool):
+        is_open_now = open_raw
+    else:
+        is_open_now = str(open_raw).strip().lower() in {"true", "1", "yes", "evet"}
+
+    return working, week, is_open_now
 
 
 def _as_abs(path: Path) -> Path:

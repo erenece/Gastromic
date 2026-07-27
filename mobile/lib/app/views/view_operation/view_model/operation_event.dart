@@ -14,8 +14,6 @@ class OperationBusynessChangedEvent extends OperationEvent {
   OperationBusynessChangedEvent(this.busyness);
 }
 
-class OperationOpenNowToggledEvent extends OperationEvent {}
-
 class OperationVenueSelectedEvent extends OperationEvent {
   final String venueId;
   OperationVenueSelectedEvent(this.venueId);

@@ -5,7 +5,11 @@
 **/.flutter-plugins-dependencies
 **/*.iml
 firebase.json
-data_pipeline/__pycache__/
+.firebaserc
+firebase/
+rag/
+
+# Build & tooling (tüm alt projeler)
 backend/__pycache__/
 backend/chroma_db/
 backend/secrets/*.json
