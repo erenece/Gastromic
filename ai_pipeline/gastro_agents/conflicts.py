@@ -126,6 +126,15 @@ def taste_score(candidate: VenueCandidate) -> float:
 BUSY_DOWNRANK_THRESHOLD = 0.85  # bu yoğunluğun üstü "kalabalık saat" sayılır
 
 
+def check_amenities(candidate: VenueCandidate, profile: TasteProfile) -> tuple[str, Optional[str]]:
+    """('ok'|'downrank', sebep) — sigara/alkol tercihi karşılanmıyorsa puan kır."""
+    if profile.requires_smoking_area and candidate.smoking_area is False:
+        return "downrank", "sigara alanı tercihi karşılanmıyor"
+    if profile.requires_alcohol and candidate.alcohol_served is False:
+        return "downrank", "alkol servisi tercihi karşılanmıyor"
+    return "ok", None
+
+
 def check_busyness(candidate: VenueCandidate, threshold: float = BUSY_DOWNRANK_THRESHOLD):
     """('downrank'|'ok'|'unknown', busyness_0_1) döndürür.
 

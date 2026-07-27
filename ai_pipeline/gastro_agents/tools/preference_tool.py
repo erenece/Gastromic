@@ -64,4 +64,6 @@ def normalize_preferences(prefs: UserPreferences) -> TasteProfile:
         mode=prefs.daily_mode,
         mode_summary=f"{prefs.daily_mode.value} modu · {band} bütçe",
         hard_constraints=hard,
+        requires_smoking_area=prefs.smoking_area,
+        requires_alcohol=prefs.alcohol_served,
     )

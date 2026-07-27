@@ -24,6 +24,7 @@ class HomeViewModel extends Bloc<HomeEvent, HomeState> {
     try {
       final nearby = await _homeService.fetchNearbyVenues();
       final favorites = await _homeService.fetchFavoriteVenues();
+      final position = await _homeService.fetchCurrentPosition();
 
       String location;
       try {
@@ -36,6 +37,8 @@ class HomeViewModel extends Bloc<HomeEvent, HomeState> {
         state.copyWith(
           status: ViewStatus.success,
           locationName: location,
+          userLat: position?.lat ?? 0,
+          userLng: position?.lng ?? 0,
           nearbyVenues: nearby,
           favoriteVenues: favorites,
         ),

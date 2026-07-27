@@ -41,6 +41,8 @@ class OperationView extends StatelessWidget with OperationWidgets {
                             context,
                             venues: state.filteredVenues,
                             selectedVenueId: state.selectedVenueId,
+                            userLat: state.userLat,
+                            userLng: state.userLng,
                             onPinTap: (id) =>
                                 viewModel.add(OperationVenueSelectedEvent(id)),
                           ),

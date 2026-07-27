@@ -1,4 +1,5 @@
 .env
+data/processed/image_urls.json
 __pycache__/
 *.pyc
 .venv/

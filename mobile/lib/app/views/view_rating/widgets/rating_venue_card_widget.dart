@@ -21,15 +21,11 @@ mixin RatingVenueCardWidget {
             child: SizedBox(
               height: context.dynamicHeight(0.18),
               width: double.infinity,
-              child: visit.imageUrl.isNotEmpty
-                  ? Image.network(visit.imageUrl, fit: BoxFit.cover)
-                  : Container(
-                      color: context.cPrimary.withValues(alpha: 0.1),
-                      child: Icon(
-                        Icons.restaurant,
-                        color: context.cPrimary.withValues(alpha: 0.4),
-                      ),
-                    ),
+              child: VenueImage(
+                imageUrl: visit.imageUrl,
+                category: visit.category,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           Padding(

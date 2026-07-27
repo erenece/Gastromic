@@ -28,15 +28,12 @@ mixin OperationVenueCardWidget {
             child: SizedBox(
               width: 64,
               height: 64,
-              child: venue.imageUrl.isNotEmpty
-                  ? Image.network(venue.imageUrl, fit: BoxFit.cover)
-                  : Container(
-                      color: context.cPrimary.withValues(alpha: 0.1),
-                      child: Icon(
-                        Icons.restaurant,
-                        color: context.cPrimary.withValues(alpha: 0.4),
-                      ),
-                    ),
+              child: VenueImage(
+                imageUrl: venue.imageUrl,
+                category: venue.category,
+                types: venue.types,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           context.sizedWidthBoxNormal,

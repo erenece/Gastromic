@@ -1,66 +1,107 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
+
 import 'package:gastromic/app/views/view_venue_detail/repository/model/venue_detail_model.dart';
-import 'package:gastromic/core/models/dish_model.dart';
+import 'package:gastromic/core/services/recommendation_service.dart';
 
-// şu anlık mock data
 class VenueDetailService {
-  Future<VenueDetailModel> fetchVenueDetail(String venueId) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final RecommendationService _recommendationService = RecommendationService();
 
-    return const VenueDetailModel(
-      id: 'mock-1',
-      name: 'Seraser Fine Dining',
-      imageUrl: '',
-      rating: 4.8,
-      reviewCount: 324,
-      category: 'Fine Dining',
-      distance: '1.2 km',
-      aiSummary:
-          'Damak tadınıza ve alerji tercihlerinize uygun bir mekan. '
-          'Deniz ürünleri ağırlıklı menüsüyle öne çıkıyor, glutensiz seçenekler mevcut.',
-      description:
-          'Kaleiçi\'nin tarihi dokusunda yer alan Seraser, modern Akdeniz mutfağını '
-          'yerel malzemelerle buluşturuyor. Şef önerisi menüsü ve zengin şarap '
-          'kartıyla özel günler için tercih ediliyor.',
-      features: ['Bahçe Katı', 'Teras Alan', 'Vale Hizmeti', 'Canlı Müzik'],
-      dishes: [
-        DishModel(
-          id: 'd1',
-          name: 'Deniz Tarağı',
-          description: 'Karamelize soğan ve limon sos ile',
-          imageUrl: '',
-        ),
-        DishModel(
-          id: 'd2',
-          name: 'Dana Bonfile',
-          description: 'Trüf mantarı ve kök sebze püresi',
-          imageUrl: '',
-        ),
-      ],
-      reviews: [
-        ReviewModel(
-          id: 'r1',
-          userName: 'Emre K.',
-          rating: 5,
-          comment:
-              'Alerji tercihlerimi belirttiğimde menüyü baştan sona uyarladılar. '
-              'Servis ve lezzet kusursuzdu.',
-          date: '2 gün önce',
-        ),
-        ReviewModel(
-          id: 'r2',
-          userName: 'Selin A.',
-          rating: 4.5,
-          comment: 'Teras katı manzarası çok güzel, rezervasyon şart.',
-          date: '1 hafta önce',
-        ),
-      ],
-      address: 'Tuzcular Mah. Kandiller Sok. No: 18 Kaleiçi / Antalya',
-      phone: '+90 242 247 6015',
-      workingHours: '10:00 - 23:00',
-      latitude: 36.8841,
-      longitude: 30.7056,
-      priceLevel: 4,
-      location: 'Kaleiçi, Antalya',
+  Future<VenueDetailModel> fetchVenueDetail(String venueId) async {
+    final doc = await _firestore.collection('venues').doc(venueId).get();
+    if (!doc.exists || doc.data() == null) {
+      throw Exception('Mekan bulunamadı');
+    }
+
+    final data = doc.data()!;
+    final reviewsSnapshot = await _firestore
+        .collection('venues')
+        .doc(venueId)
+        .collection('reviews')
+        .orderBy('rating', descending: true)
+        .limit(10)
+        .get();
+
+    final reviews = reviewsSnapshot.docs.map((reviewDoc) {
+      final review = reviewDoc.data();
+      return ReviewModel(
+        id: reviewDoc.id,
+        userName: review['userName'] ?? 'Kullanıcı',
+        rating: (review['rating'] ?? 0).toDouble(),
+        comment: review['comment'] ?? '',
+        date: review['date'] ?? review['createdAt']?.toString() ?? '',
+      );
+    }).toList();
+
+    var aiSummary = data['aiSummary'] as String? ?? '';
+    if (aiSummary.isEmpty) {
+      try {
+        aiSummary = await _recommendationService.fetchVenueSummary(
+          venueId: venueId,
+          city: data['city'] as String?,
+        );
+      } catch (_) {
+        aiSummary = 'Kişiselleştirilmiş AI özeti şu an oluşturulamadı.';
+      }
+    }
+
+    final distance = await _distanceLabel(
+      (data['latitude'] ?? 0).toDouble(),
+      (data['longitude'] ?? 0).toDouble(),
     );
+
+    final types = (data['types'] as String? ?? '').split(',');
+    final features = types
+        .map((t) => t.trim().replaceAll('_', ' '))
+        .where((t) => t.isNotEmpty)
+        .take(4)
+        .toList();
+
+    return VenueDetailModel(
+      id: venueId,
+      name: data['name'] ?? '',
+      imageUrl: data['imageUrl'] ?? '',
+      rating: (data['rating'] ?? 0).toDouble(),
+      reviewCount: ((data['reviewCount'] ?? 0) as num).toInt(),
+      category: data['category'] ?? '',
+      distance: distance,
+      aiSummary: aiSummary,
+      description: data['address'] ?? '',
+      features: features.isEmpty ? ['Restoran'] : features,
+      dishes: const [],
+      reviews: reviews,
+      address: data['address'] ?? '',
+      phone: data['phone'] ?? '',
+      workingHours: data['workingHours'] ?? '10:00 - 23:00',
+      latitude: (data['latitude'] ?? 0).toDouble(),
+      longitude: (data['longitude'] ?? 0).toDouble(),
+      priceLevel: ((data['priceLevel'] ?? 2) as num).toInt(),
+      location: '${data['district'] ?? ''}, ${data['city'] ?? ''}'.trim(),
+    );
+  }
+
+  Future<String> _distanceLabel(double lat, double lng) async {
+    if (lat == 0 && lng == 0) return '';
+    try {
+      final permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return '';
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      final meters = Geolocator.distanceBetween(
+        pos.latitude,
+        pos.longitude,
+        lat,
+        lng,
+      );
+      if (meters >= 1000) {
+        return '${(meters / 1000).toStringAsFixed(1)} km';
+      }
+      return '${meters.round()} m';
+    } catch (_) {
+      return '';
+    }
   }
 }

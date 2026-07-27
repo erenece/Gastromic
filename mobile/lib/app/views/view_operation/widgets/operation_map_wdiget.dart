@@ -6,72 +6,30 @@ mixin OperationMapWidget {
     required List<MapVenueModel> venues,
     required String? selectedVenueId,
     required ValueChanged<String> onPinTap,
+    double userLat = 0,
+    double userLng = 0,
   }) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Container(
-            color: context.cPrimary.withValues(alpha: 0.06),
-            child: Center(
-              child: Icon(
-                Icons.map_outlined,
-                size: 48,
-                color: context.cPrimary.withValues(alpha: 0.2),
-              ),
-            ),
+    final markers = venues
+        .where((v) => v.latitude != 0 || v.longitude != 0)
+        .map(
+          (v) => GastromicMapMarker(
+            id: v.id,
+            latitude: v.latitude,
+            longitude: v.longitude,
+            title: v.name,
           ),
-        ),
-        ...List.generate(venues.length, (index) {
-          final venue = venues[index];
-          final isSelected = venue.id == selectedVenueId;
-          final positions = _placeholderPositions(context);
-          final pos = positions[index % positions.length];
-          return Positioned(
-            left: pos.dx,
-            top: pos.dy,
-            child: GestureDetector(
-              onTap: () => onPinTap(venue.id),
-              child: Transform.rotate(
-                angle: 0.785398,
-                child: Container(
-                  width: isSelected ? 26 : 20,
-                  height: isSelected ? 26 : 20,
-                  decoration: BoxDecoration(
-                    color: context.cPrimary,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-        Positioned(
-          left: context.width * 0.4,
-          top: context.dynamicHeight(0.22),
-          child: Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: context.cSecondary,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+        )
+        .toList();
 
-  static List<Offset> _placeholderPositions(BuildContext context) {
-    final w = context.width;
-    final h = context.dynamicHeight(0.5);
-    return [
-      Offset(w * 0.25, h * 0.3),
-      Offset(w * 0.6, h * 0.35),
-      Offset(w * 0.3, h * 0.55),
-      Offset(w * 0.65, h * 0.6),
-      Offset(w * 0.45, h * 0.45),
-    ];
+    return GastromicGoogleMap(
+      latitude: userLat != 0 ? userLat : null,
+      longitude: userLng != 0 ? userLng : null,
+      zoom: 12,
+      markers: markers,
+      selectedMarkerId: selectedVenueId,
+      interactive: true,
+      showMyLocation: true,
+      onMarkerTap: onPinTap,
+    );
   }
 }

@@ -1,6 +1,13 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
+_BASE_DIR = Path(__file__).resolve().parent
+_REPO_ROOT = _BASE_DIR.parent
+
+load_dotenv(_BASE_DIR / ".env")
+load_dotenv(_REPO_ROOT / "backend" / ".env")
 load_dotenv()
 
 GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY", "")
@@ -25,3 +32,4 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 RAW_DIR = os.path.join(BASE_DIR, "data", "raw")
 PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
+IMAGE_URLS_JSON = os.path.join(PROCESSED_DIR, "image_urls.json")
