@@ -48,11 +48,12 @@ mixin HomeNearbyWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        venue.imageUrl.isNotEmpty
-                            ? Image.network(venue.imageUrl, fit: BoxFit.cover)
-                            : Container(
-                                color: context.cPrimary.withValues(alpha: 0.1),
-                              ),
+                        VenueImage(
+                          imageUrl: venue.imageUrl,
+                          category: venue.category,
+                          types: venue.types,
+                          fit: BoxFit.cover,
+                        ),
                         Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(

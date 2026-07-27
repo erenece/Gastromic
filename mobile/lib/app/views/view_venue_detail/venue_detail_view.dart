@@ -6,6 +6,7 @@ import 'package:gastromic/app/views/view_venue_detail/view_model/venue_detail_vi
 import 'package:gastromic/app/views/view_venue_detail/widgets/venue_detail_widgets.dart';
 import 'package:gastromic/core/enums/view_status.dart';
 import 'package:gastromic/core/extensions/core_extensions.dart';
+import 'package:gastromic/core/utils/maps_launcher.dart';
 import 'package:gastromic/core/widgets/primary_button.dart';
 
 @RoutePage()
@@ -85,8 +86,20 @@ class VenueDetailView extends StatelessWidget with VenueDetailWidgets {
                         context.sizedHeightBoxMedium,
                         PrimaryButton(
                           label: 'Yol Tarifi',
-                          onPressed: () {
-                            // google haritalar yönlendirme
+                          onPressed: () async {
+                            try {
+                              await MapsLauncher.openDirections(
+                                latitude: venue.latitude,
+                                longitude: venue.longitude,
+                                label: venue.name,
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            }
                           },
                         ),
                         context.sizedHeightBoxMedium,

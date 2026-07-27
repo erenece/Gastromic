@@ -17,7 +17,7 @@ Future<void> main() async {
   Flavor.create(
     Environment.production,
     properties: {
-      Keys.apiUrl: 'https://TODO-prod-backend-url',
+      Keys.apiUrl: 'https://gastromic-api.onrender.com',
       Keys.appTitle: 'Gastromic',
     },
   );

@@ -13,9 +13,11 @@ mixin VenueDetailHeroWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          venue.imageUrl.isNotEmpty
-              ? Image.network(venue.imageUrl, fit: BoxFit.cover)
-              : Container(color: context.cPrimary.withValues(alpha: 0.15)),
+          VenueImage(
+            imageUrl: venue.imageUrl,
+            category: venue.category,
+            fit: BoxFit.cover,
+          ),
           // Karartma
           Container(
             decoration: BoxDecoration(

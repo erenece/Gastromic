@@ -4,7 +4,10 @@ import 'package:hive/hive.dart';
 import 'package:gastromic/core/models/venue_model.dart';
 
 class SearchService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  SearchService({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
   final Box _settingsBox = Hive.box('settings');
 
   static const String _recentKey = 'recent_searches';

@@ -19,7 +19,7 @@ Future<void> main() async {
     name: 'DEV',
     color: Colors.orange,
     properties: {
-      Keys.apiUrl: 'https://TODO-dev-backend-url',
+      Keys.apiUrl: 'http://10.0.2.2:8000',
       Keys.appTitle: 'Gastromic Dev',
     },
   );
