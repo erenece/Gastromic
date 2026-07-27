@@ -6,11 +6,17 @@
 **/*.iml
 firebase.json
 data_pipeline/__pycache__/
+backend/__pycache__/
+backend/chroma_db/
+backend/secrets/*.json
+**/*service-account*.json
+**/*service_account*.json
 
 # Firebase (API key içerir)
 **/google-services.json
 **/firebase_options_dev.dart
 **/firebase_options_prod.dart
+ios/Flutter/Secrets.xcconfig
 
 # Environment
 **/.env
