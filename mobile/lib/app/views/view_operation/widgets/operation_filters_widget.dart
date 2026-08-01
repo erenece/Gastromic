@@ -98,23 +98,6 @@ mixin OperationFiltersWidget {
               Text('Kalabalık', style: context.bodyMedium),
             ],
           ),
-<<<<<<< HEAD
-=======
-
-          context.sizedHeightBoxMedium,
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Şu an açık olanlar', style: context.titleLarge),
-              Switch(
-                value: openNowOnly,
-                activeThumbColor: context.cPrimary,
-                onChanged: onOpenNowChanged,
-              ),
-            ],
-          ),
->>>>>>> 5539e0b (feat: add splash animation, fix profile card, photo upload, and lint warnings)
         ],
       ),
     );
