@@ -18,26 +18,36 @@ class SettingsService {
 
   Future<SettingsProfileModel> fetchProfile() async {
     final doc = await _firestore.collection('users').doc(_uid).get();
-    final data = doc.data() ?? {};
+    final data = Map<String, dynamic>.from(doc.data() ?? {});
+    if ((data['name'] as String?)?.isEmpty ?? true) {
+      data['name'] = _auth.currentUser?.displayName ?? '';
+    }
     return SettingsProfileModel.fromMap(data);
   }
 
-
   Future<void> updateNotifications(bool value) async {
-    await _firestore.collection('users').doc(_uid).update({
-      'notificationsEnabled': value,
-    });
+    await _firestore
+        .collection('users')
+        .doc(_uid)
+        .set({'notificationsEnabled': value}, SetOptions(merge: true));
   }
 
   Future<void> updateName(String name) async {
-    await _firestore.collection('users').doc(_uid).update({'name': name});
+    await _firestore
+        .collection('users')
+        .doc(_uid)
+        .set({'name': name}, SetOptions(merge: true));
+    await _auth.currentUser?.updateDisplayName(name);
   }
 
   Future<String> uploadProfilePhoto(File file) async {
     final ref = _storage.ref().child('profile_photos').child('$_uid.jpg');
     await ref.putFile(file);
     final url = await ref.getDownloadURL();
-    await _firestore.collection('users').doc(_uid).update({'photoUrl': url});
+    await _firestore
+        .collection('users')
+        .doc(_uid)
+        .set({'photoUrl': url}, SetOptions(merge: true));
     return url;
   }
 

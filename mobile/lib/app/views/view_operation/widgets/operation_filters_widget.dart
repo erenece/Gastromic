@@ -109,7 +109,7 @@ mixin OperationFiltersWidget {
               Text('Şu an açık olanlar', style: context.titleLarge),
               Switch(
                 value: openNowOnly,
-                activeColor: context.cPrimary,
+                activeThumbColor: context.cPrimary,
                 onChanged: onOpenNowChanged,
               ),
             ],

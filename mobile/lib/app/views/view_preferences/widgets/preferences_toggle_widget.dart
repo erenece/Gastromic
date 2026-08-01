@@ -36,7 +36,7 @@ mixin PreferencesToggleWidget {
           ),
           Switch(
             value: value,
-            activeColor: context.cPrimary,
+            activeThumbColor: context.cPrimary,
             onChanged: onChanged,
           ),
         ],

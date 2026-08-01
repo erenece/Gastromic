@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze *)",
+      "Bash(Test-Path \"C:/Users/Ece/Documents/development/gastromic-yeni/mobile/lib/firebase_options_dev.dart\")",
+      "Bash(Test-Path \"C:/Users/Ece/Documents/development/gastromic-yeni/mobile/lib/firebase_options_prod.dart\")"
+    ]
+  }
+}
