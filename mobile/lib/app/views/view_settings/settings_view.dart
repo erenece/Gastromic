@@ -72,7 +72,7 @@ class SettingsView extends StatelessWidget with SettingsWidgets {
                       title: 'Bildirimler',
                       trailing: Switch(
                         value: profile.notificationsEnabled,
-                        activeColor: context.cPrimary,
+                        activeThumbColor: context.cPrimary,
                         onChanged: (value) => viewModel.add(
                           SettingsNotificationToggledEvent(value),
                         ),
