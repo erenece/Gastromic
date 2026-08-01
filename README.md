@@ -325,9 +325,9 @@ Sprint 3 sonunda **Gastromic MVP** aşağıdaki yetenekleri gerçek veriyle sunm
 | ------------------------ | --------------- |
 | ![Operasyon 1](ProjectManagement/Sprint3Documents/operation_1.png) | ![Operasyon 2](ProjectManagement/Sprint3Documents/operation_2.png) |
 
-| Puanlama |
-| -------- |
-| ![Puanlama](ProjectManagement/Sprint3Documents/rating_screen.png) |
+| Puanlama | Ayarlar |
+| -------- | ------- |
+| ![Puanlama](ProjectManagement/Sprint3Documents/rating_screen.png) | ![Ayarlar](ProjectManagement/Sprint3Documents/settings_view.png) |
 
 - **Sprint Review (Final)**: Sprint 3 review'da Gastromic'in Sprint 1–2'de kurulan iskeletinin gerçek bir ürüne dönüştüğü doğrulandı. Demo akışı: tercih tanımı → yakındaki mekan keşfi → AI destekli mekan detayı → harita/yol tarifi → yakınlık bazlı puanlama. Tanıtım videosu (3 dk) bu akış üzerinden hazırlandı. Katılımcılar: Ece EREN, Levent KÖK, Sahrasu TÜYLÜOĞLU, Ayşenur BİLİR, Alp Eray ÇOKER.
 
