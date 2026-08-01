@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 import 'package:gastromic/app/routes/app_router.dart';
 import 'package:gastromic/app/views/view_splash/view_model/splash_view_model.dart';
@@ -35,7 +36,14 @@ class SplashView extends StatelessWidget {
         },
         child: Scaffold(
           backgroundColor: context.cBackground,
-          body: const Center(child: FlutterLogo(size: 96)),
+          body: Center(
+            child: Lottie.asset(
+              'assets/animations/splash_animation.json',
+              width: 220,
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
         ),
       ),
     );

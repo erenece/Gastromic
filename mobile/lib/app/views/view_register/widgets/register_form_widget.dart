@@ -47,10 +47,12 @@ mixin RegisterFormWidget {
               icon: Icons.person_rounded,
               onChanged: onNameChanged,
               validator: (value) {
-                if (value == null || value.trim().isEmpty)
+                if (value == null || value.trim().isEmpty) {
                   return "Ad ve Soyad boş olamaz";
-                if (value.trim().split(' ').length < 2)
+                }
+                if (value.trim().split(' ').length < 2) {
                   return 'Ad ve soyadınız giriniz';
+                }
                 return null;
               },
             ),
@@ -64,8 +66,9 @@ mixin RegisterFormWidget {
               onChanged: onEmailChanged,
               validator: (value) {
                 if (value == null || value.isEmpty) return 'E-posta boş olamaz';
-                if (!value.isValidEmail)
+                if (!value.isValidEmail) {
                   return 'Geçerli bir e-posta adresi giriniz';
+                }
                 return null;
               },
             ),
@@ -96,8 +99,9 @@ mixin RegisterFormWidget {
               onChanged: onConfirmPasswordChanged,
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Şifre boş olamaz';
-                if (value != passwordController.text)
+                if (value != passwordController.text) {
                   return 'Şifreler eşleşmiyor';
+                }
                 return null;
               },
             ),

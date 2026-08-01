@@ -16,7 +16,7 @@ mixin VenueDetailDishesWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: dishes.length,
-            separatorBuilder: (_, __) => context.sizedWidthBoxLow2x,
+            separatorBuilder: (_, _) => context.sizedWidthBoxLow2x,
             itemBuilder: (context, index) {
               final dish = dishes[index];
               return SizedBox(

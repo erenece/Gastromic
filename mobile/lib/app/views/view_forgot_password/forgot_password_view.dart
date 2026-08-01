@@ -39,6 +39,7 @@ class ForgotPasswordView extends StatelessWidget with ForgotPasswordWidgets {
             appBar: AppBar(
               backgroundColor: context.cBackground,
               leading: const BackButton(),
+              title: Text('Şifre Değiştir', style: context.titleLarge),
             ),
             body: SafeArea(
               child: SingleChildScrollView(

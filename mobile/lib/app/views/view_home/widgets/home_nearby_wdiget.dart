@@ -36,7 +36,7 @@ mixin HomeNearbyWidget {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: venues.length,
-            separatorBuilder: (_, __) => context.sizedWidthBoxLow2x,
+            separatorBuilder: (_, _) => context.sizedWidthBoxLow2x,
             itemBuilder: (context, index) {
               final venue = venues[index];
               return GestureDetector(
