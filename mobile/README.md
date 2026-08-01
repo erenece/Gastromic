@@ -1,5 +1,7 @@
 # Gastromic Mobile
 
+> Genel kurulum ve test akışı: [`../SETUP.md`](../SETUP.md)
+
 Flutter tabanlı Gastromic mobil uygulaması. Firestore'dan mekan verisi okur; AI özet ve açılış saatleri için backend API kullanır.
 
 ## Gereksinimler

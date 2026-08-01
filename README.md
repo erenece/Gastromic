@@ -42,6 +42,99 @@ Gastromic, seyahat eden gurme gezginlerin bütçe, konum ve diyet/alerjen kısı
 
 [GastroLogic AI Product Backlog (GitHub Projects)](https://github.com/users/erenece/projects/2)
 
+## Uygulamayı Çalıştırma ve Test
+
+Repoyu klonlayıp uygulamayı yerelde denemek için **[SETUP.md](SETUP.md)** rehberine gidin.
+
+| Rehber | Ne için? |
+|--------|----------|
+| [SETUP.md](SETUP.md) | Hızlı başlangıç — backend + mobil, test akışı |
+| [mobile/README.md](mobile/README.md) | Flutter kurulum, dev/prod flavor, sorun giderme |
+| [backend/README.md](backend/README.md) | FastAPI, Firestore seed, API |
+
+## Sistem Mimarisi ve Pipeline
+
+Aşağıdaki diyagram, Gastromic'in **veri → backend/AI → mobil** akışını ve çalışma zamanındaki bileşen ilişkilerini özetler.
+
+```mermaid
+flowchart TB
+    subgraph Kaynak["Veri Kaynakları"]
+        GP[Google Places API]
+        Apify[Apify — yoğunluk verisi]
+    end
+
+    subgraph DataPipeline["data_pipeline/"]
+        Raw[Ham JSON / CSV]
+        Processed[places.csv · reviews.csv · density_training_data.csv]
+        Photos[06_fetch_photos.py → image_urls.json]
+    end
+
+    subgraph Seed["Backend Seed & Patch"]
+        SeedScript[firestore_seed.py]
+        PatchImg[patch_venue_images.py]
+        OpenHrs[opening_hours.py]
+    end
+
+    subgraph Firebase["Firebase (gastromic-dev / prod)"]
+        Auth[Authentication]
+        Firestore[(Firestore\nvenues · users · reviews · favorites)]
+        FStorage[Storage — mekan fotoğrafları]
+    end
+
+    subgraph Backend["backend/ — FastAPI"]
+        API["/recommend · /recommend/summary\n/opening-hours · /search"]
+    end
+
+    subgraph AI["ai_pipeline/ — Çok Ajanlı AI"]
+        Profiler[Profiler Agent]
+        Retriever[Venue Retriever / RAG]
+        Debate[Agent Debate\nalerjen · bütçe · yoğunluk]
+        Rules[Deterministik kurallar\nconflicts · amenities]
+        Gemini[Gemini — doğal dil özeti]
+        Chroma[(ChromaDB indeks)]
+    end
+
+    subgraph Mobile["mobile/ — Flutter"]
+        App[Gastromic App\ndev / prod flavor]
+        Screens[Home · Search · Detail\nBul · Rating · Settings]
+    end
+
+    GP --> Raw
+    Apify --> Processed
+    Raw --> Processed
+    Processed --> SeedScript
+    Processed --> Chroma
+    Photos --> PatchImg
+    SeedScript --> Firestore
+    PatchImg --> Firestore
+    PatchImg --> FStorage
+    OpenHrs --> GP
+
+    Screens --> Auth
+    Screens -->|mekan listesi · yorum · favori| Firestore
+    Screens -->|AI özet · öneri · açılış saati| API
+
+    API --> Profiler
+    Profiler --> Retriever
+    Retriever --> Chroma
+    Retriever --> Processed
+    Retriever --> Debate
+    Debate --> Rules
+    Rules --> Gemini
+    Gemini --> API
+    API -->|kişiselleştirilmiş özet| Screens
+    OpenHrs --> API
+
+    App --> Screens
+```
+
+**Kullanıcı akışı (runtime):**
+
+1. Kullanıcı **giriş yapar** → Firebase Auth; tercihler Firestore `users/{uid}` altında saklanır.
+2. **Ana sayfa / arama / harita** → mekan verisi doğrudan Firestore `venues` koleksiyonundan okunur; client-side filtre (tercih, mesafe, yoğunluk, açık/kapalı).
+3. **Mekan detayı** → FastAPI `/recommend/summary` çağrılır; AI pipeline tercihleri alerjen/bütçe/mod kurallarıyla işler, Gemini metni üretir; mobilde renkli özet gösterilir.
+4. **Yol tarifi & puanlama** → `pendingVisit` kaydı; ~100 m yakınlıkta değerlendirme; yorum hem `venues/{id}/reviews` hem `reviewHistory`'ye yazılır.
+
 ---
 
 # Sprint 1
@@ -179,3 +272,80 @@ Sprint 2 sonunda uygulama, kullanıcı girişinden başlayarak tercih seçimi, a
   - Backend servislerinin (FastAPI) frontend ile entegrasyonu ve unit test kapsamının artırılması Sprint 3'e taşınmıştır.
 
 # Sprint 3
+
+- **Sprint Notları**: Sprint 3, projenin **final sprinti** olarak planlandı. Sprint 2 sonunda mock/placeholder ile çalışan ekranların gerçek **Firestore + FastAPI + AI pipeline** verisiyle beslenmesi, backend/AI/mobil katmanlarının tek bir ürün halinde birleştirilmesi ve kullanıcıya sunulabilir bir MVP'nin tamamlanması hedeflendi. Takım yine paralel kollarda ilerledi: (1) mobil tarafta entegrasyon, kişiselleştirme ve UX cilası; (2) backend/Firestore/Storage kurulumu; (3) AI özet ve öneri API'lerinin genişletilmesi; (4) veri/fotoğraf pipeline'ının üretime hazırlanması. Sprint 3 sonunda Gastromic, onboarding'den puanlamaya kadar **gerçek veriyle uçtan uca çalışan** bir mobil ürün haline getirildi.
+
+- **Puan Tamamlama Mantığı**: Proje genelinde ~340 puanlık backlog'un son dilimi Sprint 3'e ayrıldı (~100 puan). Bu sprintte "çalışan demo" değil, **entegre ürün teslimi** esas alındı: mock servislerin kaldırılması, Firebase güvenlik kurallarının yazılması, mekan fotoğraflarının pipeline ile çekilmesi, AI destekli mekan özetlerinin mobil arayüze bağlanması ve konum/yoğunluk/açılış saati gibi gerçek zamanlı filtrelerin devreye alınması bu puanların odak noktası oldu.
+
+- **Daily Scrum**: Daily Scrum toplantıları Slack üzerinden sürdürüldü. Frontend–backend–AI entegrasyonu, Firestore seed, API key yönetimi ve sprint sonu demo/tanıtım videosu hazırlığı toplantılarda takip edildi.
+
+| Daily Scrum (Sprint 3)                                              |
+| ------------------------------------------------------------------- |
+| ![Daily Scrum Sprint 3](ProjectManagement/Sprint3Documents/meeting.jpeg) |
+
+- **Sprint Board Updates**: Sprint 3 board'unda mock → gerçek veri geçişi, backend birleştirme (`backend/`), venue detail zenginleştirme, harita/filtre iyileştirmeleri, ayarlar & splash animasyonu ve repo güvenlik temizliği maddeleri "Done" durumuna taşındı. GitHub `main` branch'i sprint sonunda tüm ekip katkılarını içerecek şekilde birleştirildi.
+
+## Sprint 3'te Yapılanlar
+
+Sprint 2'de mock/placeholder ile çalışan iskelet, Sprint 3'te **gerçek veriyle çalışan entegre bir ürüne** dönüştürüldü. Ece EREN, Levent KÖK, Sahrasu TÜYLÜOĞLU, Ayşenur BİLİR ve Alp Eray ÇOKER'in ortak katkısıyla mobil, backend, veri pipeline ve AI katmanları tek bir akışta birleştirildi:
+
+- **Backend & Firestore entegrasyonu**: Mock servisler kaldırıldı; Home, Search, Operation, Rating ve Venue Detail ekranları Firestore `venues` koleksiyonundan gerçek mekan verisi okuyacak şekilde güncellendi. FastAPI backend (`/recommend`, `/recommend/summary`, opening-hours) mobil uygulamaya bağlandı; `backend/firestore_seed.py` ile CSV verisi Firestore'a yüklendi.
+- **Kişiselleştirilmiş AI özeti**: Mekan detayında kullanıcı tercihlerine (alerjen, bütçe, günlük mod, alkol/sigara) göre renklendirilmiş AI özet kutusu; `advisory.py`, genişletilmiş venue summary prompt'ları ve backend API ile beslenir hale getirildi. Alerjen vetosu ve bütçe hesapları deterministik tutuldu; Gemini yalnızca doğrulanmış sonucu doğal dile çeviriyor.
+- **Mekan detay & UX**: Gerçek Google Map, bugünün çalışma saati, göreceli yorum tarihleri, favori toggle, yol tarifi → `pendingVisit` akışı ve yönlendirme sonrası ana sayfaya dönüş.
+- **Ana sayfa, arama & harita**: GPS tabanlı mesafe filtreleme/sıralama, "Şu an buradasınız" kartı, favoriler; 600 ms debounce'lu arama; Bul sekmesinde fiyat/yoğunluk filtreleri ve yerel saate göre açık mekan filtresi; gerçek Google Maps widget'ı.
+- **Puanlama & güvenilirlik**: Yalnızca ~100 m yakınlık + yol tarifi sonrası puanlama; `reviewHistory` alt koleksiyonu ile geçmiş değerlendirmeler.
+- **Ayarlar, auth & splash**: Settings ekranı (profil kartı, oturum yönetimi, profil fotoğrafı yükleme); Lottie splash animasyonu; auth/kayıt akışı cilalandı.
+- **Veri & fotoğraf pipeline'ı**: `data_pipeline/06_fetch_photos.py` ile mekan görselleri çekildi; Firebase Storage ve patch script'leri ile Firestore kayıtlarına işlendi. `places.csv`, `reviews.csv` ve `density_training_data.csv` (7 şehir / 3400+ mekan) backend seed ve AI pipeline veri kaynağı olarak kullanıldı. Legacy `rag/` modülü repoda dokümante edildi; asıl kaynak `data_pipeline/` + `backend/` olarak netleştirildi.
+- **Açılış saatleri**: `backend/opening_hours.py` + Google Places API; mobil tarafta `opening_hours_service` ile tüketim.
+- **DevOps & dokümantasyon**: `mobile/README.md`, Firebase rules repoya alındı, hassas dosyalar `.gitignore` ile korundu; Chroma indeksleme (`/index-venues`) ve CSV fallback ile canlı + offline mod desteklendi.
+
+## Ürün Durumu (Final)
+
+Sprint 3 sonunda **Gastromic MVP** aşağıdaki yetenekleri gerçek veriyle sunmaktadır:
+
+| Katman | Durum |
+| ------ | ----- |
+| Mobil (Flutter) | Onboarding → Auth → Tercihler → Home / Arama / Detay / Bul / Puanlama / Ayarlar uçtan uca |
+| Veri | Firestore `venues` + kullanıcı alt koleksiyonları (favoriler, pendingVisit, reviewHistory) |
+| Backend | FastAPI: öneri, AI özet, opening-hours, seed & indeksleme |
+| AI | Çok ajanlı pipeline + venue-specific summary + tercih filtresi |
+| Güvenlik | Firebase rules repoda; secret/API key dosyaları gitignore'da |
+
+**Mobil Uygulama Görüntüleri (Sprint 3 Final)**
+
+| Ana Sayfa | Arama |
+| --------- | ----- |
+| ![Ana Sayfa](ProjectManagement/Sprint3Documents/home_screen.png) | ![Arama](ProjectManagement/Sprint3Documents/search_screen.png) |
+
+| Mekan Detay (AI Özet) | Mekan Detay (Harita & Saat) |
+| --------------------- | --------------------------- |
+| ![Mekan Detay 1](ProjectManagement/Sprint3Documents/menu_detail.png) | ![Mekan Detay 2](ProjectManagement/Sprint3Documents/menu_detail_2.png) |
+
+| Bul / Operasyon Haritası | Bul / Filtreler |
+| ------------------------ | --------------- |
+| ![Operasyon 1](ProjectManagement/Sprint3Documents/operation_1.png) | ![Operasyon 2](ProjectManagement/Sprint3Documents/operation_2.png) |
+
+| Puanlama |
+| -------- |
+| ![Puanlama](ProjectManagement/Sprint3Documents/rating_screen.png) |
+
+- **Sprint Review (Final)**: Sprint 3 review'da Gastromic'in Sprint 1–2'de kurulan iskeletinin gerçek bir ürüne dönüştüğü doğrulandı. Demo akışı: tercih tanımı → yakındaki mekan keşfi → AI destekli mekan detayı → harita/yol tarifi → yakınlık bazlı puanlama. Tanıtım videosu (3 dk) bu akış üzerinden hazırlandı. Katılımcılar: Ece EREN, Levent KÖK, Sahrasu TÜYLÜOĞLU, Ayşenur BİLİR, Alp Eray ÇOKER.
+
+- **Sprint Retrospective (Final)**:
+  - Sprint 3'te en büyük kazanım **mock'tan gerçeğe geçiş** oldu; ekip artık "ekran var" değil "ürün çalışıyor" demeyi hedefledi ve bu hedefe ulaşıldı.
+  - Backend–mobil–AI üçgeninde erken veri sözleşmesi tanımlanması entegrasyonu hızlandırdı; geç tanımlanan endpoint'ler kısa gecikmelere yol açtı — final teslimde bu borç kapatıldı.
+  - Git geçmişi temizliği ve secret yönetimi sprint sonunda önem kazandı; `.gitignore`, Firebase rules ve `mobile/README.md` ile sürdürülebilir ekip onboarding'i sağlandı.
+  - Yoğunluk modeli eğitimi bir sonraki ürün fazına bırakıldı; ancak `density_training_data.csv` ve client-side yoğunluk filtresi MVP'de kullanıma hazır.
+  - **Proje kapanışı**: Üç sprint sonunda Gastromic; hassasiyet, bütçe, yoğunluk ve konumu bir araya getiren, AI destekli kişisel gastronomi asistanı vizyonunu çalışan bir mobil MVP olarak teslim edilmiştir.
+
+---
+
+## Proje Özeti (Final Teslim)
+
+**Gastromic**, 3 sprintlik geliştirme sürecinde fikirden çalışan ürüne evrildi:
+
+1. **Sprint 1** — Kimlik, onboarding, tercihler ve ham veri altyapısı
+2. **Sprint 2** — Ana ekranlar, çok ajanlı AI beyni, yoğunluk veri seti
+3. **Sprint 3** — Firestore/FastAPI/AI entegrasyonu, gerçek harita & fotoğraf, kişiselleştirilmiş özet, final UX ve teslim
+
+Takım 119 olarak Gastromic'i **7 şehirde 3400+ mekan verisi**, Firebase tabanlı gerçek zamanlı backend ve Gemini destekli öneri katmanı ile sunmaktadır. Proje repo'su: [erenece/Gastromic](https://github.com/erenece/Gastromic).
